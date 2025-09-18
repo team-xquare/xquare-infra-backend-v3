@@ -3,6 +3,7 @@ plugins {
     kotlin(Plugins.KotlinSpring.ID) version Plugins.KotlinSpring.VERSION
     id(Plugins.SpringBoot.ID) version Plugins.SpringBoot.VERSION
     id(Plugins.SpringDependencyManagement.ID) version Plugins.SpringDependencyManagement.VERSION
+    id(Plugins.Ktlint.ID) version Plugins.Ktlint.VERSION
 }
 
 group = "app.xquare"

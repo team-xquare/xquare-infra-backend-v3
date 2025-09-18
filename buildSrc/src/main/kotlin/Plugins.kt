@@ -20,4 +20,9 @@ object Plugins {
         const val ID = "io.spring.dependency-management"
         const val VERSION = "1.1.7"
     }
+
+    object Ktlint {
+        const val ID = "org.jlleitschuh.gradle.ktlint"
+        const val VERSION = "13.1.0"
+    }
 }
