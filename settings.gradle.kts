@@ -1,4 +1,4 @@
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    id(Plugins.FoojayResolver.ID) version Plugins.FoojayResolver.VERSION
 }
-rootProject.name = "xquare-infra"
+rootProject.name = Project.ROOT_NAME

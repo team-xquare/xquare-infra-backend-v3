@@ -6,9 +6,9 @@ plugins {
     id(Plugins.Ktlint.ID) version Plugins.Ktlint.VERSION
 }
 
-group = "app.xquare"
-version = "0.0.1-SNAPSHOT"
-description = "xquare-infra-v3"
+group = Project.GROUP
+version = Project.VERSION
+description = Project.DESCRIPTION
 
 java {
     toolchain {
