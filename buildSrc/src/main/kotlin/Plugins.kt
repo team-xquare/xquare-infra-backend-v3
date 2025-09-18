@@ -1,11 +1,6 @@
 object Plugins {
     private const val KOTLIN_VERSION = "1.9.25"
 
-    object FoojayResolver {
-        const val ID = "org.gradle.toolchains.foojay-resolver-convention"
-        const val VERSION = "0.8.0"
-    }
-
     object KotlinJVM {
         const val ID = "jvm"
         const val VERSION = KOTLIN_VERSION
