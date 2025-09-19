@@ -10,6 +10,9 @@ jwt:
 spring:
   application:
     name: xquare-infra-v3
+  web:
+    resources:
+      add-mappings: false
 
   datasource:
     url: ${MYSQL_URL:jdbc:mysql://localhost:3306/xquare-infra}
