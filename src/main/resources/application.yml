@@ -1,3 +1,12 @@
+cors:
+  allowedOrigins:
+  - ${CORS_CLIENT_ORIGIN:*}
+
+jwt:
+  secret: ${JWT_SECRET:asdfasdfasdfasdfasdfasdfasdfasdf}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRY:36000000} # 1 hour
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRY:604800000} # 7 days
+
 spring:
   application:
     name: xquare-infra-v3

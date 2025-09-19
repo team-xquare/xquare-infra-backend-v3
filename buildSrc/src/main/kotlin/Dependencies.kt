@@ -1,7 +1,10 @@
 object Dependencies {
     object SpringBoot {
-        const val DATA_JDBC = "org.springframework.boot:spring-boot-starter-data-jdbc"
+        const val DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
         const val WEB = "org.springframework.boot:spring-boot-starter-web"
+        const val SECURITY = "org.springframework.boot:spring-boot-starter-security"
+        const val VALIDATION = "org.springframework.boot:spring-boot-starter-validation"
+        const val WEBFLUX = "org.springframework.boot:spring-boot-starter-webflux"
         const val TEST = "org.springframework.boot:spring-boot-starter-test"
     }
 
@@ -13,6 +16,13 @@ object Dependencies {
 
     object Database {
         const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j"
+    }
+
+    object JWT {
+        private const val VERSION = "0.13.0"
+        const val API = "io.jsonwebtoken:jjwt-api:$VERSION"
+        const val IMPL = "io.jsonwebtoken:jjwt-impl:$VERSION"
+        const val JACKSON = "io.jsonwebtoken:jjwt-jackson:$VERSION"
     }
 
     object Test {
