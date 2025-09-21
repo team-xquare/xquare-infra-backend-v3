@@ -12,14 +12,14 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterUseCase
 import app.xquare.xquareinfra.application.auth.ports.outbound.AccessTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.RefreshTokenPort
-import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistencePort
+import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
 import org.springframework.stereotype.Service
 
 @Service
 class AuthService(
-    private val userPersistencePort: UserPersistencePort,
+    private val userPersistencePort: UserPersistenceForAuthPort,
     private val accessTokenPort: AccessTokenPort,
     private val refreshTokenPort: RefreshTokenPort,
     private val passwordEncoderPort: PasswordEncoderPort,
