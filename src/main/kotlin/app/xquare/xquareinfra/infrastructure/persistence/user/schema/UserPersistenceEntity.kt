@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.infrastructure.persistence.user
+package app.xquare.xquareinfra.infrastructure.persistence.user.schema
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

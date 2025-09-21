@@ -3,9 +3,9 @@ package app.xquare.xquareinfra.adapters.outbound.persistence.user
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistencePort
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
-import app.xquare.xquareinfra.infrastructure.persistence.user.UserPersistenceEntity
-import app.xquare.xquareinfra.infrastructure.persistence.user.UserPersistenceRole
-import app.xquare.xquareinfra.infrastructure.persistence.user.UserRepository
+import app.xquare.xquareinfra.infrastructure.persistence.user.repositories.UserRepository
+import app.xquare.xquareinfra.infrastructure.persistence.user.schema.UserPersistenceEntity
+import app.xquare.xquareinfra.infrastructure.persistence.user.schema.UserPersistenceRole
 import org.springframework.stereotype.Component
 
 @Component

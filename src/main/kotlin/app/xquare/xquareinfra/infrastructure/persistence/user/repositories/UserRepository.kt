@@ -1,5 +1,6 @@
-package app.xquare.xquareinfra.infrastructure.persistence.user
+package app.xquare.xquareinfra.infrastructure.persistence.user.repositories
 
+import app.xquare.xquareinfra.infrastructure.persistence.user.schema.UserPersistenceEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.adapters.inbound.web.auth
+package app.xquare.xquareinfra.adapters.inbound.web.auth.errorCodes
 
 import app.xquare.xquareinfra.infrastructure.web.ErrorCode
 
