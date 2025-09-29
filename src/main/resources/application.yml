@@ -16,3 +16,7 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+
+okhttp:
+  cache-dir: ${OKHTTP_CACHE_DIR}
+  cache-size-mb: ${OKHTTP_CACHE_SIZE_MB}
