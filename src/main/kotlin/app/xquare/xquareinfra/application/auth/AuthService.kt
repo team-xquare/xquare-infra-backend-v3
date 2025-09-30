@@ -16,7 +16,9 @@ import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceFor
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @Service
 class AuthService(
     private val userPersistencePort: UserPersistenceForAuthPort,
