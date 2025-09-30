@@ -1,6 +1,7 @@
 plugins {
     kotlin(Plugins.KotlinJVM.ID) version Plugins.KotlinJVM.VERSION
     kotlin(Plugins.KotlinSpring.ID) version Plugins.KotlinSpring.VERSION
+    kotlin(Plugins.KotlinJpa.ID) version Plugins.KotlinJpa.VERSION
     id(Plugins.SpringBoot.ID) version Plugins.SpringBoot.VERSION
     id(Plugins.SpringDependencyManagement.ID) version Plugins.SpringDependencyManagement.VERSION
     id(Plugins.Ktlint.ID) version Plugins.Ktlint.VERSION
@@ -21,8 +22,11 @@ repositories {
 }
 
 dependencies {
-    implementation(Dependencies.SpringBoot.DATA_JDBC)
+    implementation(Dependencies.SpringBoot.DATA_JPA)
     implementation(Dependencies.SpringBoot.WEB)
+    implementation(Dependencies.SpringBoot.SECURITY)
+    implementation(Dependencies.SpringBoot.VALIDATION)
+    implementation(Dependencies.SpringBoot.WEBFLUX)
     testImplementation(Dependencies.SpringBoot.TEST)
 
     implementation(Dependencies.Kotlin.JACKSON)
@@ -30,6 +34,10 @@ dependencies {
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
 
     runtimeOnly(Dependencies.Database.MYSQL_CONNECTOR)
+
+    implementation(Dependencies.JWT.API)
+    runtimeOnly(Dependencies.JWT.IMPL)
+    runtimeOnly(Dependencies.JWT.JACKSON)
 
     testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
 }
