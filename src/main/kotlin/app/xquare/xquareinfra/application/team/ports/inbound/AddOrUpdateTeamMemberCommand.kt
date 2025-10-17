@@ -13,15 +13,7 @@ data class AddOrUpdateMembersCommand(
     )
 }
 
-sealed class AddOrUpdateMembersResult {
-    data object Success : AddOrUpdateMembersResult()
-
-    data object TeamNotFound : AddOrUpdateMembersResult()
-
-    data object NotAdmin : AddOrUpdateMembersResult()
-
-    data object UserNotFound : AddOrUpdateMembersResult()
-}
+data object AddOrUpdateMembersResult
 
 interface AddOrUpdateMembersUseCase {
     fun addOrUpdateMembers(command: AddOrUpdateMembersCommand): AddOrUpdateMembersResult

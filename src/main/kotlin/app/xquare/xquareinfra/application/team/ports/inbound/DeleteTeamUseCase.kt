@@ -5,13 +5,7 @@ data class DeleteTeamCommand(
     val teamId: Long,
 )
 
-sealed class DeleteTeamResult {
-    data object Success : DeleteTeamResult()
-
-    data object TeamNotFound : DeleteTeamResult()
-
-    data object NotAdmin : DeleteTeamResult()
-}
+data object DeleteTeamResult
 
 interface DeleteTeamUseCase {
     fun deleteTeam(command: DeleteTeamCommand): DeleteTeamResult

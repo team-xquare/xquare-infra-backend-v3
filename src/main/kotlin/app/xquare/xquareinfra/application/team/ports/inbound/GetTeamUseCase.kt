@@ -7,15 +7,9 @@ data class GetTeamQuery(
     val teamId: Long,
 )
 
-sealed class GetTeamResult {
-    data class Success(
-        val team: Team,
-    ) : GetTeamResult()
-
-    data object TeamNotFound : GetTeamResult()
-
-    data object NotTeamMember : GetTeamResult()
-}
+data class GetTeamResult(
+    val team: Team,
+)
 
 interface GetTeamUseCase {
     fun getTeam(query: GetTeamQuery): GetTeamResult

@@ -15,15 +15,9 @@ data class CreateTeamCommand(
     )
 }
 
-sealed class CreateTeamResult {
-    data class Success(
-        val teamId: Long,
-    ) : CreateTeamResult()
-
-    data object TeamNameAlreadyExists : CreateTeamResult()
-
-    data object UserNotFound : CreateTeamResult()
-}
+data class CreateTeamResult(
+    val teamId: Long,
+)
 
 interface CreateTeamUseCase {
     fun createTeam(command: CreateTeamCommand): CreateTeamResult

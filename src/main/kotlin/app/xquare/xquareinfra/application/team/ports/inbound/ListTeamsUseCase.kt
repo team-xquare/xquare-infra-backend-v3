@@ -6,11 +6,9 @@ data class ListTeamsQuery(
     val userId: Long,
 )
 
-sealed class ListTeamsResult {
-    data class Success(
-        val teams: List<Team>,
-    ) : ListTeamsResult()
-}
+data class ListTeamsResult(
+    val teams: List<Team>,
+)
 
 interface ListTeamsUseCase {
     fun listTeams(query: ListTeamsQuery): ListTeamsResult

@@ -4,14 +4,10 @@ data class RefreshTokenCommand(
     val refreshToken: String,
 )
 
-sealed class RefreshTokenResult {
-    data class Success(
-        val accessToken: String,
-        val refreshToken: String,
-    ) : RefreshTokenResult()
-
-    data object InvalidRefreshToken : RefreshTokenResult()
-}
+data class RefreshTokenResult(
+    val accessToken: String,
+    val refreshToken: String,
+)
 
 interface RefreshTokenUseCase {
     fun refreshToken(command: RefreshTokenCommand): RefreshTokenResult

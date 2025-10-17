@@ -29,59 +29,56 @@ class AuthService(
     LoginUseCase,
     RefreshTokenUseCase {
     override fun register(command: RegisterCommand): RegisterResult {
+        if (userPersistencePort.existsByUsername(command.username)) {
+            throw AuthException.UsernameAlreadyExists
+        }
+
+        val encodedPassword = passwordEncoderPort.encode(command.password)
         val user =
             User(
                 username = command.username,
-                password = command.password,
+                password = encodedPassword,
                 role = UserRole.MEMBER,
                 studentNumber = command.studentNumber,
                 name = command.name,
                 email = command.email,
             )
 
-        if (userPersistencePort.existsByUsername(user.username)) {
-            return RegisterResult.UsernameAlreadyExists
-        }
-
-        val encodedPassword = passwordEncoderPort.encode(user.password)
-        val passwordEncodedUser = user.copy(password = encodedPassword)
-
-        val savedUser = userPersistencePort.save(passwordEncodedUser)
-
+        val savedUser = userPersistencePort.save(user)
         val accessToken = accessTokenPort.create(savedUser.id!!)
         val refreshToken = refreshTokenPort.create(savedUser.id)
 
-        return RegisterResult.Success(accessToken = accessToken, refreshToken = refreshToken)
+        return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }
 
     override fun login(command: LoginCommand): LoginResult {
         val user =
             userPersistencePort.findByUsername(command.username)
-                ?: return LoginResult.InvalidCredentials
+                ?: throw AuthException.InvalidCredentials
 
         if (!passwordEncoderPort.matches(command.password, user.password)) {
-            return LoginResult.InvalidCredentials
+            throw AuthException.InvalidCredentials
         }
 
         val accessToken = accessTokenPort.create(user.id!!)
         val refreshToken = refreshTokenPort.create(user.id)
 
-        return LoginResult.Success(accessToken = accessToken, refreshToken = refreshToken)
+        return LoginResult(accessToken = accessToken, refreshToken = refreshToken)
     }
 
     override fun refreshToken(command: RefreshTokenCommand): RefreshTokenResult {
         if (!refreshTokenPort.isValid(command.refreshToken)) {
-            return RefreshTokenResult.InvalidRefreshToken
+            throw AuthException.InvalidRefreshToken
         }
 
         val userId =
             refreshTokenPort.extractUserId(command.refreshToken)
-                ?: return RefreshTokenResult.InvalidRefreshToken
+                ?: throw AuthException.InvalidRefreshToken
 
         val newAccessToken = accessTokenPort.create(userId)
         val newRefreshToken = refreshTokenPort.create(userId)
 
-        return RefreshTokenResult.Success(
+        return RefreshTokenResult(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
         )

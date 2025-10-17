@@ -9,13 +9,7 @@ data class UpdateTeamCommand(
     val type: TeamType?,
 )
 
-sealed class UpdateTeamResult {
-    data object Success : UpdateTeamResult()
-
-    data object TeamNotFound : UpdateTeamResult()
-
-    data object NotAdmin : UpdateTeamResult()
-}
+data object UpdateTeamResult
 
 interface UpdateTeamUseCase {
     fun updateTeam(command: UpdateTeamCommand): UpdateTeamResult

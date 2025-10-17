@@ -5,8 +5,8 @@ import app.xquare.xquareinfra.infrastructure.web.ErrorCode
 enum class GlobalErrorCode(
     override val value: String,
 ) : ErrorCode {
-    VALIDATION_ERROR("VALIDATION_ERROR"),
-    METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED"),
-    BAD_REQUEST("BAD_REQUEST"),
-    NOT_FOUND("NOT_FOUND"),
+    VALIDATION_ERROR("GLOBAL_VALIDATION_ERROR"),
+    METHOD_NOT_ALLOWED("GLOBAL_METHOD_NOT_ALLOWED"),
+    BAD_REQUEST("GLOBAL_BAD_REQUEST"),
+    NOT_FOUND("GLOBAL_NOT_FOUND"),
 }

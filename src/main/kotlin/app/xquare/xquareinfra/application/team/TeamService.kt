@@ -1,5 +1,6 @@
 package app.xquare.xquareinfra.application.team
 
+import app.xquare.xquareinfra.application.global.exception.CommonException
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersResult
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersUseCase
@@ -45,22 +46,22 @@ class TeamService(
     DeleteTeamUseCase {
     override fun listTeams(query: ListTeamsQuery): ListTeamsResult {
         val teams = teamPersistencePort.listByUserId(query.userId)
-        return ListTeamsResult.Success(teams)
+        return ListTeamsResult(teams)
     }
 
     override fun getTeam(query: GetTeamQuery): GetTeamResult {
-        val team = teamPersistencePort.findById(query.teamId) ?: return GetTeamResult.TeamNotFound
+        val team = teamPersistencePort.findById(query.teamId) ?: throw CommonException.TeamNotFound
 
         if (!team.members.any({ it.user.id == query.userId })) {
-            return GetTeamResult.NotTeamMember
+            throw CommonException.NotTeamMember
         }
 
-        return GetTeamResult.Success(team)
+        return GetTeamResult(team)
     }
 
     override fun createTeam(command: CreateTeamCommand): CreateTeamResult {
         if (teamPersistencePort.existsByName(command.name)) {
-            return CreateTeamResult.TeamNameAlreadyExists
+            throw TeamException.TeamNameAlreadyExists
         }
 
         val membersToAdd =
@@ -69,7 +70,7 @@ class TeamService(
                     CreateTeamCommand.InitialMember(memberId = command.userId, role = TeamMemberRole.ADMIN)
             ).distinctBy { it.memberId }
                 .map {
-                    val user = userPersistencePort.findById(it.memberId) ?: return CreateTeamResult.UserNotFound
+                    val user = userPersistencePort.findById(it.memberId) ?: throw CommonException.UserNotFound
                     TeamMember(user = user, role = it.role)
                 }
 
@@ -81,12 +82,12 @@ class TeamService(
             )
 
         val savedTeam = teamPersistencePort.save(team)
-        return CreateTeamResult.Success(teamId = savedTeam.id!!)
+        return CreateTeamResult(teamId = savedTeam.id!!)
     }
 
     override fun addOrUpdateMembers(command: AddOrUpdateMembersCommand): AddOrUpdateMembersResult {
-        val team = teamPersistencePort.findById(command.teamId) ?: return AddOrUpdateMembersResult.TeamNotFound
-        if (!isAdmin(team, command.userId)) return AddOrUpdateMembersResult.NotAdmin
+        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
+        if (!isAdmin(team, command.userId)) throw TeamException.NotTeamAdmin
 
         val newRoleMap = command.members.associate { it.memberId to it.role }
         val updatedMembers = team.members.map { it.copy(role = newRoleMap[it.user.id] ?: it.role) }
@@ -96,46 +97,46 @@ class TeamService(
             command.members
                 .filterNot { it.memberId in existingIdsSet }
                 .map {
-                    val user = userPersistencePort.findById(it.memberId) ?: return AddOrUpdateMembersResult.UserNotFound
+                    val user = userPersistencePort.findById(it.memberId) ?: throw CommonException.UserNotFound
                     TeamMember(user = user, role = it.role)
                 }
 
         val updatedTeam = team.copy(members = updatedMembers + newMembers)
         teamPersistencePort.save(updatedTeam)
 
-        return AddOrUpdateMembersResult.Success
+        return AddOrUpdateMembersResult
     }
 
     override fun updateTeam(command: UpdateTeamCommand): UpdateTeamResult {
-        val team = teamPersistencePort.findById(command.teamId) ?: return UpdateTeamResult.TeamNotFound
-        if (!isAdmin(team, command.userId)) return UpdateTeamResult.NotAdmin
+        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
+        if (!isAdmin(team, command.userId)) throw TeamException.NotTeamAdmin
 
         val updatedTeam = team.copy(name = command.name ?: team.name, type = command.type ?: team.type)
         teamPersistencePort.save(updatedTeam)
 
-        return UpdateTeamResult.Success
+        return UpdateTeamResult
     }
 
     override fun deleteMembers(command: DeleteMembersCommand): DeleteMembersResult {
-        val team = teamPersistencePort.findById(command.teamId) ?: return DeleteMembersResult.TeamNotFound
-        if (!isAdmin(team, command.userId)) return DeleteMembersResult.NotAdmin
+        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
+        if (!isAdmin(team, command.userId)) throw TeamException.NotTeamAdmin
 
         val deletedIdsSet = command.memberIds.toSet()
 
         val updatedTeam = team.copy(members = team.members.filter { it.user.id !in deletedIdsSet })
         teamPersistencePort.save(updatedTeam)
 
-        return DeleteMembersResult.Success
+        return DeleteMembersResult
     }
 
     override fun deleteTeam(command: DeleteTeamCommand): DeleteTeamResult {
-        val team = teamPersistencePort.findById(command.teamId) ?: return DeleteTeamResult.TeamNotFound
-        if (!isAdmin(team, command.userId)) return DeleteTeamResult.NotAdmin
+        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
+        if (!isAdmin(team, command.userId)) throw TeamException.NotTeamAdmin
 
         applicationPersistencePort.deleteByTeamId(command.teamId)
         teamPersistencePort.delete(command.teamId)
 
-        return DeleteTeamResult.Success
+        return DeleteTeamResult
     }
 
     private fun isAdmin(
