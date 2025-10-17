@@ -1,0 +1,19 @@
+package app.xquare.xquareinfra.adapters.inbound.web.auth.errorCode
+
+import app.xquare.xquareinfra.application.auth.AuthException
+import app.xquare.xquareinfra.infrastructure.web.toWrappedDto
+import org.springframework.http.ResponseEntity
+
+object AuthExceptionMapper {
+    fun toResponseEntity(ex: AuthException): ResponseEntity<Any> =
+        when (ex) {
+            is AuthException.UsernameAlreadyExists ->
+                ResponseEntity.badRequest().body(AuthErrorCode.USERNAME_ALREADY_EXISTS.toWrappedDto())
+
+            is AuthException.InvalidCredentials ->
+                ResponseEntity.badRequest().body(AuthErrorCode.INVALID_CREDENTIALS.toWrappedDto())
+
+            is AuthException.InvalidRefreshToken ->
+                ResponseEntity.badRequest().body(AuthErrorCode.INVALID_REFRESH_TOKEN.toWrappedDto())
+        }
+}

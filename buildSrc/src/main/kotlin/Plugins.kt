@@ -11,6 +11,11 @@ object Plugins {
         const val VERSION = KOTLIN_VERSION
     }
 
+    object KotlinJpa {
+        const val ID = "plugin.jpa"
+        const val VERSION = KOTLIN_VERSION
+    }
+
     object SpringBoot {
         const val ID = "org.springframework.boot"
         const val VERSION = "3.5.5"
