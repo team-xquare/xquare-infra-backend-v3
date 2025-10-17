@@ -29,12 +29,18 @@ dependencies {
     implementation(Dependencies.SpringBoot.WEBFLUX)
     testImplementation(Dependencies.SpringBoot.TEST)
 
+    implementation(Dependencies.SpringCloud.FEIGN)
+    implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
+
     implementation(Dependencies.Kotlin.JACKSON)
     implementation(Dependencies.Kotlin.REFLECT)
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
 
     runtimeOnly(Dependencies.Database.MYSQL_CONNECTOR)
 
+    implementation(Dependencies.HTTPClient.OKHTTP)
+    implementation(Dependencies.HTTPClient.OKHTTP_LOGGING_INTERCEPTOR)
+    
     implementation(Dependencies.JWT.API)
     runtimeOnly(Dependencies.JWT.IMPL)
     runtimeOnly(Dependencies.JWT.JACKSON)
