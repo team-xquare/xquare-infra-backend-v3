@@ -5,14 +5,10 @@ data class LoginCommand(
     val password: String,
 )
 
-sealed class LoginResult {
-    data class Success(
-        val accessToken: String,
-        val refreshToken: String,
-    ) : LoginResult()
-
-    data object InvalidCredentials : LoginResult()
-}
+data class LoginResult(
+    val accessToken: String,
+    val refreshToken: String,
+)
 
 interface LoginUseCase {
     fun login(command: LoginCommand): LoginResult

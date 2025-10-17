@@ -5,7 +5,9 @@ import app.xquare.xquareinfra.application.user.ports.inbound.GetUserResult
 import app.xquare.xquareinfra.application.user.ports.inbound.GetUserUseCase
 import app.xquare.xquareinfra.application.user.ports.outbound.UserPersistenceForUserPort
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @Service
 class UserService(
     private val userPersistencePort: UserPersistenceForUserPort,

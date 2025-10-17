@@ -13,6 +13,8 @@ spring:
   web:
     resources:
       add-mappings: false
+  jackson:
+    default-property-inclusion: non_null
 
   datasource:
     url: ${MYSQL_URL:jdbc:mysql://localhost:3306/xquare-infra}

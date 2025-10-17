@@ -8,14 +8,10 @@ data class RegisterCommand(
     val email: String,
 )
 
-sealed class RegisterResult {
-    data class Success(
-        val accessToken: String,
-        val refreshToken: String,
-    ) : RegisterResult()
-
-    data object UsernameAlreadyExists : RegisterResult()
-}
+data class RegisterResult(
+    val accessToken: String,
+    val refreshToken: String,
+)
 
 interface RegisterUseCase {
     fun register(command: RegisterCommand): RegisterResult

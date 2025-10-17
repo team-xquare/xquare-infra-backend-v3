@@ -4,7 +4,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.LoginRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.RefreshTokenRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.RegisterRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.TokenResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.auth.errorCodes.AuthErrorCode
+import app.xquare.xquareinfra.adapters.inbound.web.auth.errorCode.AuthErrorCode
 import app.xquare.xquareinfra.application.auth.ports.inbound.LoginCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.LoginResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.LoginUseCase
@@ -43,16 +43,8 @@ class AuthController(
                 email = request.email,
             )
 
-        return when (val result = registerUseCase.register(command)) {
-            is RegisterResult.Success ->
-                ResponseEntity.ok(
-                    TokenResponseDto(result.accessToken, result.refreshToken).toWrappedDto(),
-                )
-            is RegisterResult.UsernameAlreadyExists ->
-                ResponseEntity.badRequest().body(
-                    AuthErrorCode.USERNAME_ALREADY_EXISTS.toWrappedDto(),
-                )
-        }
+        val (accessToken, refreshToken) = registerUseCase.register(command)
+        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
     }
 
     @PostMapping("/login")
@@ -65,16 +57,8 @@ class AuthController(
                 password = request.password,
             )
 
-        return when (val result = loginUseCase.login(command)) {
-            is LoginResult.Success ->
-                ResponseEntity.ok(
-                    TokenResponseDto(result.accessToken, result.refreshToken).toWrappedDto(),
-                )
-            is LoginResult.InvalidCredentials ->
-                ResponseEntity.badRequest().body(
-                    AuthErrorCode.INVALID_CREDENTIALS.toWrappedDto(),
-                )
-        }
+        val (accessToken, refreshToken) = loginUseCase.login(command)
+        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
     }
 
     @PostMapping("/refresh")
@@ -83,15 +67,7 @@ class AuthController(
     ): ResponseEntity<*> {
         val command = RefreshTokenCommand(refreshToken = request.refreshToken)
 
-        return when (val result = refreshTokenUseCase.refreshToken(command)) {
-            is RefreshTokenResult.Success ->
-                ResponseEntity.ok(
-                    TokenResponseDto(result.accessToken, result.refreshToken).toWrappedDto(),
-                )
-            is RefreshTokenResult.InvalidRefreshToken ->
-                ResponseEntity.badRequest().body(
-                    AuthErrorCode.INVALID_REFRESH_TOKEN.toWrappedDto(),
-                )
-        }
+        val (accessToken, refreshToken) = refreshTokenUseCase.refreshToken(command)
+        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
     }
 }
