@@ -1,7 +1,7 @@
 package app.xquare.xquareinfra.infrastructure.github
 
 import app.xquare.xquareinfra.infrastructure.github.dtos.ContentFileResponse
-import app.xquare.xquareinfra.infrastructure.github.dtos.RepositoryDispatchRequestDto
+import app.xquare.xquareinfra.infrastructure.github.dtos.RepositoryDispatchRequest
 import feign.Headers
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 )
 interface GithubClient {
     @GetMapping("/repos/{owner}/{repo}/contents/{path}")
-    @Headers("Accept: application/vnd.github.v3.full+json")
+    @Headers("Accept: application/vnd.github.object+json")
     fun getRepositoryContent(
         @RequestHeader("Authorization") authorization: String,
         @PathVariable owner: String,
@@ -29,10 +29,10 @@ interface GithubClient {
 
     @PostMapping("/repos/{owner}/{repo}/dispatches")
     @Headers("Accept: application/vnd.github+json")
-    fun sendRepositoryDispatch(
+    fun <T> sendRepositoryDispatch(
         @RequestHeader("Authorization") authorization: String,
         @PathVariable owner: String,
         @PathVariable repo: String,
-        @RequestBody payload: RepositoryDispatchRequestDto,
+        @RequestBody payload: RepositoryDispatchRequest<T>,
     ): ResponseEntity<Void>
 }

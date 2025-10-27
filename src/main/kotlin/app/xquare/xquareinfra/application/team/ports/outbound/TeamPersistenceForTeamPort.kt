@@ -2,7 +2,7 @@ package app.xquare.xquareinfra.application.team.ports.outbound
 
 import app.xquare.xquareinfra.domain.team.Team
 
-interface TeamPersistencePort {
+interface TeamPersistenceForTeamPort {
     fun existsByName(name: String): Boolean
 
     fun listByUserId(userId: Long): List<Team>

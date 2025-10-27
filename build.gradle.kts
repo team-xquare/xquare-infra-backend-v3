@@ -33,6 +33,7 @@ dependencies {
     implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
 
     implementation(Dependencies.Kotlin.JACKSON)
+    implementation(Dependencies.Kotlin.JACKSON_DATAFORMAT_YAML)
     implementation(Dependencies.Kotlin.REFLECT)
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
 
@@ -40,7 +41,7 @@ dependencies {
 
     implementation(Dependencies.HTTPClient.OKHTTP)
     implementation(Dependencies.HTTPClient.OKHTTP_LOGGING_INTERCEPTOR)
-    
+
     implementation(Dependencies.JWT.API)
     runtimeOnly(Dependencies.JWT.IMPL)
     runtimeOnly(Dependencies.JWT.JACKSON)
