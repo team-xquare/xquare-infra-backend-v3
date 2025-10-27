@@ -9,5 +9,7 @@ sealed class CommonException : UseCaseException() {
 
     data object ApplicationNotFound : CommonException()
 
+    data object AddonNotFound : CommonException()
+
     data object NotTeamMember : CommonException()
 }
