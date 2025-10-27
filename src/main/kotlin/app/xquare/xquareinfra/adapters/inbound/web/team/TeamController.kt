@@ -1,5 +1,8 @@
 package app.xquare.xquareinfra.adapters.inbound.web.team
 
+import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.common.configuration.toDto
+import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.common.toDto
+import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.response.GetApplicationResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.common.toDomain
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.common.toDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.AddOrUpdateTeamMembersRequestDto
@@ -7,6 +10,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.CreateTeamR
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.DeleteTeamMembersRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.UpdateTeamRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.CreateTeamResponseDto
+import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamApplicationsResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamsResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.TeamMemberDto
@@ -21,6 +25,8 @@ import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamUseCase
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsQuery
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamCommand
@@ -49,6 +55,7 @@ class TeamController(
     private val deleteMembersUseCase: DeleteMembersUseCase,
     private val updateTeamUseCase: UpdateTeamUseCase,
     private val deleteTeamUseCase: DeleteTeamUseCase,
+    private val listTeamApplicationsUseCase: ListTeamApplicationsUseCase,
 ) {
     @GetMapping
     fun listTeams(
@@ -89,6 +96,30 @@ class TeamController(
                         TeamMemberDto(userId = it.user.id!!, role = it.role.toDto())
                     },
             ).toWrappedDto(),
+        )
+    }
+
+    @GetMapping("/{teamId}/applications")
+    fun getTeamApplications(
+        @PathVariable teamId: Long,
+        @AuthenticationPrincipal user: User,
+    ): ResponseEntity<*> {
+        val query = ListTeamApplicationsQuery(user.id!!, teamId)
+        val result = listTeamApplicationsUseCase.listTeamApplications(query)
+
+        return ResponseEntity.ok(
+            GetTeamApplicationsResponseDto(
+                applications =
+                    result.applications.map {
+                        GetApplicationResponseDto(
+                            id = it.id!!,
+                            teamId = it.team.id!!,
+                            name = it.name,
+                            status = it.status.toDto(),
+                            configuration = it.configuration.toDto(),
+                        )
+                    },
+            ),
         )
     }
 
@@ -162,7 +193,6 @@ class TeamController(
             UpdateTeamCommand(
                 userId = user.id!!,
                 teamId = teamId,
-                name = request.name,
                 type = request.type?.toDomain(),
             )
 

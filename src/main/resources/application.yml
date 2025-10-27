@@ -34,3 +34,9 @@ spring:
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}
   cache-size-mb: ${OKHTTP_CACHE_SIZE_MB}
+
+gitops:
+  token: ${GITOPS_TOKEN}
+  owner: ${GITOPS_REPO_OWNER}
+  repo: ${GITOPS_REPO_NAME}
+  branch: ${GITOPS_REPO_BRANCH}

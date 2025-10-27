@@ -2,6 +2,7 @@ package app.xquare.xquareinfra.adapters.outbound.persistence.user
 
 import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toDomain
 import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toPersistence
+import app.xquare.xquareinfra.application.application.ports.outbound.UserPersistenceForApplicationPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
 import app.xquare.xquareinfra.application.team.ports.outbound.UserPersistenceForTeamPort
 import app.xquare.xquareinfra.application.user.ports.outbound.UserPersistenceForUserPort
@@ -18,7 +19,8 @@ class UserPersistenceAdapter(
     private val userRepository: UserRepository,
 ) : UserPersistenceForAuthPort,
     UserPersistenceForUserPort,
-    UserPersistenceForTeamPort {
+    UserPersistenceForTeamPort,
+    UserPersistenceForApplicationPort {
     override fun existsByUsername(username: String): Boolean = userRepository.existsByUsername(username)
 
     override fun save(user: User): User {

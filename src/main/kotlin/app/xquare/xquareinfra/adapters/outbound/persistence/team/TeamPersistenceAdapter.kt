@@ -2,7 +2,8 @@ package app.xquare.xquareinfra.adapters.outbound.persistence.team
 
 import app.xquare.xquareinfra.adapters.outbound.persistence.team.mappers.toDomain
 import app.xquare.xquareinfra.adapters.outbound.persistence.team.mappers.toPersistence
-import app.xquare.xquareinfra.application.team.ports.outbound.TeamPersistencePort
+import app.xquare.xquareinfra.application.application.ports.outbound.TeamPersistenceForApplicationPort
+import app.xquare.xquareinfra.application.team.ports.outbound.TeamPersistenceForTeamPort
 import app.xquare.xquareinfra.domain.team.Team
 import app.xquare.xquareinfra.infrastructure.persistence.team.repositories.TeamRepository
 import org.springframework.stereotype.Component
@@ -11,7 +12,8 @@ import kotlin.jvm.optionals.getOrNull
 @Component
 class TeamPersistenceAdapter(
     private val teamRepository: TeamRepository,
-) : TeamPersistencePort {
+) : TeamPersistenceForTeamPort,
+    TeamPersistenceForApplicationPort {
     override fun existsByName(name: String): Boolean = teamRepository.existsByName(name)
 
     override fun listByUserId(userId: Long): List<Team> = teamRepository.findAllByMembersUserId(userId).map { it.toDomain() }

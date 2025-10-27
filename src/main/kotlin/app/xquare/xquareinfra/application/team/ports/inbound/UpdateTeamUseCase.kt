@@ -5,7 +5,6 @@ import app.xquare.xquareinfra.domain.team.TeamType
 data class UpdateTeamCommand(
     val userId: Long,
     val teamId: Long,
-    val name: String?,
     val type: TeamType?,
 )
 
