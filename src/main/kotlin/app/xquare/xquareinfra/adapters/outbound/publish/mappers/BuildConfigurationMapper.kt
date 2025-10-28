@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.adapters.outbound.applicationConfigurationPublisher.mappers
+package app.xquare.xquareinfra.adapters.outbound.publish.mappers
 
 import app.xquare.xquareinfra.domain.application.BuildConfiguration
 import app.xquare.xquareinfra.domain.application.BuildConfigurationType
