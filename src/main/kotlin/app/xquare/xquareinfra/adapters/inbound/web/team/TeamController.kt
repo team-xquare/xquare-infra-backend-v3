@@ -1,5 +1,7 @@
 package app.xquare.xquareinfra.adapters.inbound.web.team
 
+import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.common.toDto
+import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.response.GetAddonResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.common.configuration.toDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.common.toDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.response.GetApplicationResponseDto
@@ -10,6 +12,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.CreateTeamR
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.DeleteTeamMembersRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.UpdateTeamRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.CreateTeamResponseDto
+import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamAddonsResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamApplicationsResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamsResponseDto
@@ -25,6 +28,8 @@ import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamUseCase
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsQuery
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsQuery
@@ -56,6 +61,7 @@ class TeamController(
     private val updateTeamUseCase: UpdateTeamUseCase,
     private val deleteTeamUseCase: DeleteTeamUseCase,
     private val listTeamApplicationsUseCase: ListTeamApplicationsUseCase,
+    private val listTeamAddonsUseCase: ListTeamAddonsUseCase,
 ) {
     @GetMapping
     fun listTeams(
@@ -117,6 +123,30 @@ class TeamController(
                             name = it.name,
                             status = it.status.toDto(),
                             configuration = it.configuration.toDto(),
+                        )
+                    },
+            ),
+        )
+    }
+
+    @GetMapping("/{teamId}/addons")
+    fun getTeamAddons(
+        @PathVariable teamId: Long,
+        @AuthenticationPrincipal user: User,
+    ): ResponseEntity<*> {
+        val query = ListTeamAddonsQuery(user.id!!, teamId)
+        val result = listTeamAddonsUseCase.listTeamAddons(query)
+
+        return ResponseEntity.ok(
+            GetTeamAddonsResponseDto(
+                addons =
+                    result.addons.map {
+                        GetAddonResponseDto(
+                            id = it.id!!,
+                            name = it.name,
+                            type = it.type.toDto(),
+                            tier = it.tier.toDto(),
+                            storageGi = it.storageGi,
                         )
                     },
             ),
