@@ -40,3 +40,7 @@ gitops:
   owner: ${GITOPS_REPO_OWNER}
   repo: ${GITOPS_REPO_NAME}
   branch: ${GITOPS_REPO_BRANCH}
+
+vault:
+  token: ${VAULT_TOKEN}
+  mount: ${VAULT_MOUNT}
