@@ -2,8 +2,10 @@ package app.xquare.xquareinfra.infrastructure.gitops
 
 import app.xquare.xquareinfra.infrastructure.github.GithubClient
 import app.xquare.xquareinfra.infrastructure.github.dtos.RepositoryDispatchRequest
+import app.xquare.xquareinfra.infrastructure.gitops.manifest.GitOpsAddon
 import app.xquare.xquareinfra.infrastructure.gitops.manifest.GitOpsApplication
 import app.xquare.xquareinfra.infrastructure.gitops.manifest.GitOpsProject
+import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsApplyAddonPayload
 import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsApplyApplicationPayload
 import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsRemovePayload
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -49,33 +51,48 @@ class GitOpsClient(
         projectName: String,
         applicationName: String,
         application: GitOpsApplication,
-    ) {
-        sendRepositoryDispatch(
-            GitOpsApplyApplicationPayload(
-                path = "projects/$projectName/applications/$applicationName",
-                spec = application,
-            ),
-        )
-    }
+    ) = sendRepositoryDispatch(
+        GitOpsApplyApplicationPayload(
+            path = "projects/$projectName/applications/$applicationName",
+            spec = application,
+        ),
+    )
 
     fun removeApplication(
         projectName: String,
         applicationName: String,
-    ) {
-        sendRepositoryDispatch(
-            GitOpsRemovePayload(
-                path = "projects/$projectName/applications/$applicationName",
-            ),
-        )
-    }
+    ) = sendRepositoryDispatch(
+        GitOpsRemovePayload(
+            path = "projects/$projectName/applications/$applicationName",
+        ),
+    )
 
-    fun removeProject(projectName: String) {
+    fun applyAddon(
+        projectName: String,
+        addonName: String,
+        addon: GitOpsAddon,
+    ) = sendRepositoryDispatch(
+        GitOpsApplyAddonPayload(
+            path = "projects/$projectName/addons/$addonName",
+            spec = addon,
+        ),
+    )
+
+    fun removeAddon(
+        projectName: String,
+        addonName: String,
+    ) = sendRepositoryDispatch(
+        GitOpsRemovePayload(
+            path = "projects/$projectName/addons/$addonName",
+        ),
+    )
+
+    fun removeProject(projectName: String) =
         sendRepositoryDispatch(
             GitOpsRemovePayload(
                 path = "projects/$projectName",
             ),
         )
-    }
 
     private fun <T> sendRepositoryDispatch(payload: T) {
         githubClient.sendRepositoryDispatch(

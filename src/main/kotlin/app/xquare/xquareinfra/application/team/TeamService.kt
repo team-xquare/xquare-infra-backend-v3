@@ -16,6 +16,9 @@ import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamResult
 import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamUseCase
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsQuery
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsResult
+import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsQuery
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsResult
 import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsUseCase
@@ -25,6 +28,7 @@ import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamResult
 import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamUseCase
+import app.xquare.xquareinfra.application.team.ports.outbound.AddonPersistenceForTeamPort
 import app.xquare.xquareinfra.application.team.ports.outbound.ApplicationPersistenceForTeamPort
 import app.xquare.xquareinfra.application.team.ports.outbound.TeamPersistenceForTeamPort
 import app.xquare.xquareinfra.application.team.ports.outbound.UserPersistenceForTeamPort
@@ -40,10 +44,12 @@ class TeamService(
     private val teamPersistencePort: TeamPersistenceForTeamPort,
     private val userPersistencePort: UserPersistenceForTeamPort,
     private val applicationPersistencePort: ApplicationPersistenceForTeamPort,
+    private val addonPersistencePort: AddonPersistenceForTeamPort,
 ) : CreateTeamUseCase,
     ListTeamsUseCase,
     GetTeamUseCase,
     ListTeamApplicationsUseCase,
+    ListTeamAddonsUseCase,
     AddOrUpdateMembersUseCase,
     DeleteMembersUseCase,
     UpdateTeamUseCase,
@@ -56,7 +62,7 @@ class TeamService(
     override fun getTeam(query: GetTeamQuery): GetTeamResult {
         val team = teamPersistencePort.findById(query.teamId) ?: throw CommonException.TeamNotFound
 
-        if (!team.members.any { it.user.id == query.userId }) {
+        if (!team.isMember(query.userId)) {
             throw CommonException.NotTeamMember
         }
 
@@ -92,12 +98,25 @@ class TeamService(
     override fun listTeamApplications(query: ListTeamApplicationsQuery): ListTeamApplicationsResult {
         val team = teamPersistencePort.findById(query.teamId) ?: throw CommonException.TeamNotFound
 
-        if (!team.members.any { it.user.id == query.userId }) {
+        if (!team.isMember(query.userId)) {
             throw CommonException.NotTeamMember
         }
 
         val applications = applicationPersistencePort.listByTeamId(query.teamId)
         return ListTeamApplicationsResult(applications)
+    }
+
+    override fun listTeamAddons(query: ListTeamAddonsQuery): ListTeamAddonsResult {
+        val team =
+            teamPersistencePort.findById(query.teamId)
+                ?: throw CommonException.TeamNotFound
+
+        if (!team.isMember(query.userId)) {
+            throw CommonException.NotTeamMember
+        }
+
+        val addons = addonPersistencePort.listByTeamId(query.teamId)
+        return ListTeamAddonsResult(addons)
     }
 
     override fun addOrUpdateMembers(command: AddOrUpdateMembersCommand): AddOrUpdateMembersResult {

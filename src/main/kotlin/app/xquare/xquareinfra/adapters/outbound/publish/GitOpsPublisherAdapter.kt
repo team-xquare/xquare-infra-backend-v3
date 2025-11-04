@@ -1,16 +1,19 @@
-package app.xquare.xquareinfra.adapters.outbound.applicationConfigurationPublisher
+package app.xquare.xquareinfra.adapters.outbound.publish
 
-import app.xquare.xquareinfra.adapters.outbound.applicationConfigurationPublisher.mappers.toDomain
-import app.xquare.xquareinfra.adapters.outbound.applicationConfigurationPublisher.mappers.toGitOps
+import app.xquare.xquareinfra.adapters.outbound.publish.mappers.toDomain
+import app.xquare.xquareinfra.adapters.outbound.publish.mappers.toGitOps
+import app.xquare.xquareinfra.application.addon.ports.outbound.AddonPublishPort
 import app.xquare.xquareinfra.application.application.ports.outbound.ApplicationConfigurationPublishPort
+import app.xquare.xquareinfra.domain.addon.Addon
 import app.xquare.xquareinfra.domain.application.ApplicationConfiguration
 import app.xquare.xquareinfra.infrastructure.gitops.GitOpsClient
 import org.springframework.stereotype.Component
 
 @Component
-class GitOpsApplicationConfigurationPublisherAdapter(
+class GitOpsPublisherAdapter(
     private val gitOpsClient: GitOpsClient,
-) : ApplicationConfigurationPublishPort {
+) : ApplicationConfigurationPublishPort,
+    AddonPublishPort {
     override fun getPublishedConfiguration(
         teamName: String,
         applicationName: String,
@@ -28,4 +31,14 @@ class GitOpsApplicationConfigurationPublisherAdapter(
         teamName: String,
         applicationName: String,
     ) = gitOpsClient.removeApplication(teamName, applicationName)
+
+    override fun publishAddon(
+        teamName: String,
+        addon: Addon,
+    ) = gitOpsClient.applyAddon(teamName, addon.name, addon.toGitOps())
+
+    override fun unpublishAddon(
+        teamName: String,
+        addon: Addon,
+    ) = gitOpsClient.removeAddon(teamName, addon.name)
 }

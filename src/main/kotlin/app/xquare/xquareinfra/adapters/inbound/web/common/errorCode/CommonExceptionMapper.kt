@@ -14,9 +14,11 @@ object CommonExceptionMapper {
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.TEAM_NOT_FOUND.toWrappedDto())
             is CommonException.UserNotFound ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.USER_NOT_FOUND.toWrappedDto())
-            is CommonException.NotTeamMember ->
-                ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonErrorCode.NOT_TEAM_MEMBER.toWrappedDto())
+            is CommonException.AddonNotFound ->
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.ADDON_NOT_FOUND.toWrappedDto())
             is CommonException.ApplicationNotFound ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.APPLICATION_NOT_FOUND.toWrappedDto())
+            is CommonException.NotTeamMember ->
+                ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonErrorCode.NOT_TEAM_MEMBER.toWrappedDto())
         }
 }
