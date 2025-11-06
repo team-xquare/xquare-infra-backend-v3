@@ -3,6 +3,7 @@ package app.xquare.xquareinfra.adapters.outbound.persistence.application
 import app.xquare.xquareinfra.adapters.outbound.persistence.application.mappers.toDomain
 import app.xquare.xquareinfra.adapters.outbound.persistence.application.mappers.toPersistence
 import app.xquare.xquareinfra.application.application.ports.outbound.ApplicationPersistenceForApplicationPort
+import app.xquare.xquareinfra.application.environmentVariable.ports.outbound.ApplicationPersistenceForEnvironmentVariablePort
 import app.xquare.xquareinfra.application.team.ports.outbound.ApplicationPersistenceForTeamPort
 import app.xquare.xquareinfra.domain.application.Application
 import app.xquare.xquareinfra.infrastructure.persistence.application.repositories.ApplicationRepository
@@ -13,7 +14,8 @@ import kotlin.jvm.optionals.getOrNull
 class ApplicationPersistenceAdapter(
     private val applicationRepository: ApplicationRepository,
 ) : ApplicationPersistenceForApplicationPort,
-    ApplicationPersistenceForTeamPort {
+    ApplicationPersistenceForTeamPort,
+    ApplicationPersistenceForEnvironmentVariablePort {
     override fun existsByName(name: String): Boolean = applicationRepository.existsByName(name)
 
     override fun findById(applicationId: Long): Application? = applicationRepository.findById(applicationId).getOrNull()?.toDomain()
