@@ -19,6 +19,9 @@ import app.xquare.xquareinfra.application.notice.ports.inbound.UpdateNoticeUseCa
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Notice")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/v1/notices")
 class NoticeController(
@@ -39,6 +44,7 @@ class NoticeController(
     private val listNoticesUseCase: ListNoticesUseCase,
     private val getNoticeUseCase: GetNoticeUseCase,
 ) {
+    @Operation(summary = "공지 생성")
     @PostMapping
     fun createNotice(
         @AuthenticationPrincipal user: User,
@@ -55,6 +61,7 @@ class NoticeController(
         return CreateNoticeResponseDto(result.noticeId).toWrappedDto()
     }
 
+    @Operation(summary = "공지 수정")
     @PutMapping("/{noticeId}")
     fun updateNotice(
         @PathVariable noticeId: Long,
@@ -73,6 +80,7 @@ class NoticeController(
         return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "공지 삭제")
     @DeleteMapping("/{noticeId}")
     fun deleteNotice(
         @PathVariable noticeId: Long,
@@ -88,6 +96,7 @@ class NoticeController(
         return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "공지 목록 조회")
     @GetMapping
     fun listNotices(
         @RequestParam(defaultValue = "0") page: Int,
@@ -110,6 +119,7 @@ class NoticeController(
         ).toWrappedDto()
     }
 
+    @Operation(summary = "공지 조회")
     @GetMapping("/{noticeId}")
     fun getNotice(
         @PathVariable noticeId: Long,
