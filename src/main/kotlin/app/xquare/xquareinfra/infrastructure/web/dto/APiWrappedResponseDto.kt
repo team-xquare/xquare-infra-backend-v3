@@ -1,5 +1,8 @@
 package app.xquare.xquareinfra.infrastructure.web.dto
 
+import io.swagger.v3.oas.annotations.media.Schema
+
+@Schema(hidden = true)
 data class APiWrappedResponseDto<T>(
     val success: Boolean,
     val data: T? = null,

@@ -12,6 +12,9 @@ import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.SetE
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -23,13 +26,16 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Environment variable")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/applications/{applicationId}/environment-variables")
+@RequestMapping("/api/v1/applications/{applicationId}/environment-variables")
 class EnvironmentVariableController(
     private val setEnvironmentVariableUseCase: SetEnvironmentVariableUseCase,
     private val listEnvironmentVariablesUseCase: ListEnvironmentVariablesUseCase,
     private val deleteEnvironmentVariableUseCase: DeleteEnvironmentVariableUseCase,
 ) {
+    @Operation(summary = "애플리케이션 환경변수 조회")
     @GetMapping
     fun listEnvironmentVariables(
         @PathVariable applicationId: Long,
@@ -42,6 +48,7 @@ class EnvironmentVariableController(
             )
 
         val result = listEnvironmentVariablesUseCase.listEnvironmentVariables(query)
+
         return ResponseEntity.ok(
             ListEnvironmentVariablesResponseDto(
                 environmentVariables =
@@ -52,6 +59,7 @@ class EnvironmentVariableController(
         )
     }
 
+    @Operation(summary = "애플리케이션 환경변수 추가 또는 수정")
     @PostMapping
     fun setEnvironmentVariable(
         @PathVariable applicationId: Long,
@@ -70,6 +78,7 @@ class EnvironmentVariableController(
         return ResponseEntity.ok(APiWrappedResponseDto.success())
     }
 
+    @Operation(summary = "애플리케이션 환경변수 삭제")
     @DeleteMapping("/{name}")
     fun deleteEnvironmentVariable(
         @PathVariable applicationId: Long,

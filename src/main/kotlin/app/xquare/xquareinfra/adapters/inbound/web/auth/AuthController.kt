@@ -4,18 +4,17 @@ import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.LoginRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.RefreshTokenRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.RegisterRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.auth.dtos.TokenResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.auth.errorCode.AuthErrorCode
 import app.xquare.xquareinfra.application.auth.ports.inbound.LoginCommand
-import app.xquare.xquareinfra.application.auth.ports.inbound.LoginResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.LoginUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenCommand
-import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterCommand
-import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterUseCase
+import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
-import app.xquare.xquareinfra.infrastructure.web.toWrappedDto
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,17 +22,20 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Auth")
+@SecurityRequirements // 글로벌 bearerAuth 설정 제거
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 class AuthController(
     private val registerUseCase: RegisterUseCase,
     private val loginUseCase: LoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
 ) {
+    @Operation(summary = "회원가입")
     @PostMapping("/register")
     fun register(
         @RequestBody @Valid request: RegisterRequestDto,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<TokenResponseDto> {
         val command =
             RegisterCommand(
                 username = request.username,
@@ -44,13 +46,14 @@ class AuthController(
             )
 
         val (accessToken, refreshToken) = registerUseCase.register(command)
-        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
+        return TokenResponseDto(accessToken, refreshToken).toWrappedDto()
     }
 
+    @Operation(summary = "로그인")
     @PostMapping("/login")
     fun login(
         @RequestBody @Valid request: LoginRequestDto,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<TokenResponseDto> {
         val command =
             LoginCommand(
                 username = request.username,
@@ -58,16 +61,17 @@ class AuthController(
             )
 
         val (accessToken, refreshToken) = loginUseCase.login(command)
-        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
+        return TokenResponseDto(accessToken, refreshToken).toWrappedDto()
     }
 
+    @Operation(summary = "access token 재발급")
     @PostMapping("/refresh")
     fun refresh(
         @RequestBody @Valid request: RefreshTokenRequestDto,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<TokenResponseDto> {
         val command = RefreshTokenCommand(refreshToken = request.refreshToken)
 
         val (accessToken, refreshToken) = refreshTokenUseCase.refreshToken(command)
-        return ResponseEntity.ok(TokenResponseDto(accessToken, refreshToken).toWrappedDto())
+        return TokenResponseDto(accessToken, refreshToken).toWrappedDto()
     }
 }

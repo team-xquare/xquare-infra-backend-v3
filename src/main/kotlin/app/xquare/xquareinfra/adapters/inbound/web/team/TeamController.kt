@@ -39,7 +39,12 @@ import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamUseCase
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
-import org.springframework.http.ResponseEntity
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -50,8 +55,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Team")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/teams")
+@RequestMapping("/api/v1/teams")
 class TeamController(
     private val listTeamsUseCase: ListTeamsUseCase,
     private val getTeamUseCase: GetTeamUseCase,
@@ -63,101 +70,102 @@ class TeamController(
     private val listTeamApplicationsUseCase: ListTeamApplicationsUseCase,
     private val listTeamAddonsUseCase: ListTeamAddonsUseCase,
 ) {
+    @Operation(summary = "현재 유저의 전체 팀 조회")
     @GetMapping
     fun listTeams(
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetTeamsResponseDto> {
         val query = ListTeamsQuery(user.id!!)
         val result = listTeamsUseCase.listTeams(query)
 
-        return ResponseEntity.ok(
-            GetTeamsResponseDto(
-                teams =
-                    result.teams.map {
-                        TeamSummaryResponseDto(
-                            id = it.id!!,
-                            name = it.name,
-                            type = it.type.toDto(),
-                        )
-                    },
-            ).toWrappedDto(),
-        )
+        return GetTeamsResponseDto(
+            teams =
+                result.teams.map {
+                    TeamSummaryResponseDto(
+                        id = it.id!!,
+                        name = it.name,
+                        type = it.type.toDto(),
+                    )
+                },
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "팀 상세정보 조회")
+    @ApiResponse(
+        responseCode = "200",
+        content = [Content(schema = Schema(implementation = CreateTeamResponseDto::class))],
+    )
     @GetMapping("/{teamId}")
     fun getTeam(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetTeamResponseDto> {
         val query = GetTeamQuery(user.id!!, teamId)
         val result = getTeamUseCase.getTeam(query)
 
-        return ResponseEntity.ok(
-            GetTeamResponseDto(
-                id = result.team.id!!,
-                name = result.team.name,
-                type = result.team.type.toDto(),
-                members =
-                    result.team.members.map {
-                        TeamMemberDto(userId = it.user.id!!, role = it.role.toDto())
-                    },
-            ).toWrappedDto(),
-        )
+        return GetTeamResponseDto(
+            id = result.team.id!!,
+            name = result.team.name,
+            type = result.team.type.toDto(),
+            members =
+                result.team.members.map {
+                    TeamMemberDto(userId = it.user.id!!, role = it.role.toDto())
+                },
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "팀의 모든 애플리케이션 조회")
     @GetMapping("/{teamId}/applications")
     fun getTeamApplications(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetTeamApplicationsResponseDto> {
         val query = ListTeamApplicationsQuery(user.id!!, teamId)
         val result = listTeamApplicationsUseCase.listTeamApplications(query)
 
-        return ResponseEntity.ok(
-            GetTeamApplicationsResponseDto(
-                applications =
-                    result.applications.map {
-                        GetApplicationResponseDto(
-                            id = it.id!!,
-                            teamId = it.team.id!!,
-                            name = it.name,
-                            status = it.status.toDto(),
-                            configuration = it.configuration.toDto(),
-                        )
-                    },
-            ),
-        )
+        return GetTeamApplicationsResponseDto(
+            applications =
+                result.applications.map {
+                    GetApplicationResponseDto(
+                        id = it.id!!,
+                        teamId = it.team.id!!,
+                        name = it.name,
+                        status = it.status.toDto(),
+                        configuration = it.configuration.toDto(),
+                    )
+                },
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "팀의 모든 애드온 조회")
     @GetMapping("/{teamId}/addons")
     fun getTeamAddons(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetTeamAddonsResponseDto> {
         val query = ListTeamAddonsQuery(user.id!!, teamId)
         val result = listTeamAddonsUseCase.listTeamAddons(query)
 
-        return ResponseEntity.ok(
-            GetTeamAddonsResponseDto(
-                addons =
-                    result.addons.map {
-                        GetAddonResponseDto(
-                            id = it.id!!,
-                            name = it.name,
-                            type = it.type.toDto(),
-                            tier = it.tier.toDto(),
-                            storageGi = it.storageGi,
-                        )
-                    },
-            ),
-        )
+        return GetTeamAddonsResponseDto(
+            addons =
+                result.addons.map {
+                    GetAddonResponseDto(
+                        id = it.id!!,
+                        name = it.name,
+                        type = it.type.toDto(),
+                        tier = it.tier.toDto(),
+                        storageGi = it.storageGi,
+                    )
+                },
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "팀 생성")
     @PostMapping
     fun createTeam(
         @RequestBody request: CreateTeamRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<CreateTeamResponseDto> {
         val command =
             CreateTeamCommand(
                 userId = user.id!!,
@@ -170,18 +178,16 @@ class TeamController(
             )
 
         val result = createTeamUseCase.createTeam(command)
-
-        return ResponseEntity.ok(
-            CreateTeamResponseDto(result.teamId).toWrappedDto(),
-        )
+        return CreateTeamResponseDto(result.teamId).toWrappedDto()
     }
 
+    @Operation(summary = "팀 멤버 추가 또는 수정")
     @PatchMapping("/{teamId}/members")
     fun addOrUpdateMembers(
         @PathVariable teamId: Long,
         @RequestBody request: AddOrUpdateTeamMembersRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             AddOrUpdateMembersCommand(
                 userId = user.id!!,
@@ -193,15 +199,16 @@ class TeamController(
             )
 
         addOrUpdateMembersUseCase.addOrUpdateMembers(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "팀 멤버 삭제")
     @DeleteMapping("/{teamId}/members")
     fun deleteMembers(
         @PathVariable teamId: Long,
         @RequestBody request: DeleteTeamMembersRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteMembersCommand(
                 userId = user.id!!,
@@ -210,15 +217,16 @@ class TeamController(
             )
 
         deleteMembersUseCase.deleteMembers(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "팀 정보 수정")
     @PatchMapping("/{teamId}")
     fun updateTeam(
         @PathVariable teamId: Long,
         @RequestBody request: UpdateTeamRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateTeamCommand(
                 userId = user.id!!,
@@ -227,16 +235,17 @@ class TeamController(
             )
 
         updateTeamUseCase.updateTeam(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "팀 삭제")
     @DeleteMapping("/{teamId}")
     fun deleteTeam(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command = DeleteTeamCommand(user.id!!, teamId)
         deleteTeamUseCase.deleteTeam(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 }

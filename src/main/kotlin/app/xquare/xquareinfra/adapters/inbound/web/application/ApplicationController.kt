@@ -22,8 +22,9 @@ import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplic
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -34,8 +35,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Application")
 @RestController
-@RequestMapping("/api/applications")
+@RequestMapping("/api/v1/applications")
 class ApplicationController(
     private val createApplicationUseCase: CreateApplicationUseCase,
     private val getApplicationUseCase: GetApplicationUseCase,
@@ -43,11 +45,12 @@ class ApplicationController(
     private val updateApplicationStatusUseCase: UpdateApplicationStatusUseCase,
     private val deleteApplicationUseCase: DeleteApplicationUseCase,
 ) {
+    @Operation(summary = "애플리케이션 생성")
     @PostMapping
     fun createApplication(
         @RequestBody @Valid request: CreateApplicationRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<CreateApplicationResponseDto> {
         val command =
             CreateApplicationCommand(
                 userId = user.id!!,
@@ -55,80 +58,77 @@ class ApplicationController(
                 name = request.name,
                 configuration = request.configuration.toDomain(),
             )
-
         val result = createApplicationUseCase.createApplication(command)
-        return ResponseEntity.ok(CreateApplicationResponseDto(result.applicationId).toWrappedDto())
+        return CreateApplicationResponseDto(result.applicationId).toWrappedDto()
     }
 
+    @Operation(summary = "애플리케이션 조회")
     @GetMapping("/{applicationId}")
     fun getApplication(
         @PathVariable applicationId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetApplicationResponseDto> {
         val query =
             GetApplicationQuery(
                 userId = user.id!!,
                 applicationId = applicationId,
             )
-
         val result = getApplicationUseCase.getApplication(query)
-        return ResponseEntity.ok(
-            GetApplicationResponseDto(
-                id = result.application.id!!,
-                teamId = result.application.team.id!!,
-                name = result.application.name,
-                status = result.application.status.toDto(),
-                configuration = result.application.configuration.toDto(),
-            ).toWrappedDto(),
-        )
+        return GetApplicationResponseDto(
+            id = result.application.id!!,
+            teamId = result.application.team.id!!,
+            name = result.application.name,
+            status = result.application.status.toDto(),
+            configuration = result.application.configuration.toDto(),
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "애플리케이션 설정 수정")
     @PutMapping("/{applicationId}/configuration")
     fun updateConfiguration(
         @PathVariable applicationId: Long,
         @RequestBody @Valid request: UpdateApplicationConfigurationRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateApplicationConfigurationCommand(
                 userId = user.id!!,
                 applicationId = applicationId,
                 configuration = request.configuration.toDomain(),
             )
-
         updateApplicationConfigurationUseCase.updateApplicationConfiguration(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "애플리케이션 배포 상태 수정 (관리자 전용)")
     @PutMapping("/{applicationId}/status")
     fun updateStatus(
         @PathVariable applicationId: Long,
         @RequestBody @Valid request: UpdateApplicationStatusRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateApplicationStatusCommand(
                 userId = user.id!!,
                 applicationId = applicationId,
                 status = request.status.toDomain(),
             )
-
         updateApplicationStatusUseCase.updateApplicationStatus(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "애플리케이션 삭제")
     @DeleteMapping("/{applicationId}")
     fun deleteApplication(
         @PathVariable applicationId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteApplicationCommand(
                 applicationId = applicationId,
                 userId = user.id!!,
             )
-
         deleteApplicationUseCase.deleteApplication(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 }

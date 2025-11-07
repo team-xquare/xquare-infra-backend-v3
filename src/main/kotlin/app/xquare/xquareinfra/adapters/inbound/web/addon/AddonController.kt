@@ -17,6 +17,8 @@ import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonUseCase
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -28,19 +30,21 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Tag(name = "Addon")
 @RestController
-@RequestMapping("/api/addons")
+@RequestMapping("/api/v1/addons")
 class AddonController(
     private val createAddonUseCase: CreateAddonUseCase,
     private val getAddonUseCase: GetAddonUseCase,
     private val updateAddonUseCase: UpdateAddonUseCase,
     private val deleteAddonUseCase: DeleteAddonUseCase,
 ) {
+    @Operation(summary = "애드온 생성")
     @PostMapping
     fun createAddon(
         @RequestBody request: CreateAddonRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<CreateAddonResponseDto> {
         val command =
             CreateAddonCommand(
                 userId = user.id!!,
@@ -52,14 +56,15 @@ class AddonController(
             )
 
         val result = createAddonUseCase.createAddon(command)
-        return ResponseEntity.ok(CreateAddonResponseDto(result.addonId).toWrappedDto())
+        return CreateAddonResponseDto(result.addonId).toWrappedDto()
     }
 
+    @Operation(summary = "애드온 조회")
     @GetMapping("/{addonId}")
     fun getAddon(
         @PathVariable addonId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<GetAddonResponseDto> {
         val query =
             GetAddonQuery(
                 userId = user.id!!,
@@ -69,23 +74,22 @@ class AddonController(
         val result = getAddonUseCase.getAddon(query)
         val addon = result.addon
 
-        return ResponseEntity.ok(
-            GetAddonResponseDto(
-                id = addon.id!!,
-                name = addon.name,
-                type = addon.type.toDto(),
-                tier = addon.tier.toDto(),
-                storageGi = addon.storageGi,
-            ).toWrappedDto(),
-        )
+        return GetAddonResponseDto(
+            id = addon.id!!,
+            name = addon.name,
+            type = addon.type.toDto(),
+            tier = addon.tier.toDto(),
+            storageGi = addon.storageGi,
+        ).toWrappedDto()
     }
 
+    @Operation(summary = "애드온 수정")
     @PatchMapping("/{addonId}")
     fun updateAddon(
         @PathVariable addonId: Long,
         @RequestBody request: UpdateAddonRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateAddonCommand(
                 userId = user.id!!,
@@ -94,14 +98,15 @@ class AddonController(
             )
 
         updateAddonUseCase.updateAddon(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
+    @Operation(summary = "애드온 삭제")
     @DeleteMapping("/{addonId}")
     fun deleteAddon(
         @PathVariable addonId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteAddonCommand(
                 userId = user.id!!,
@@ -109,6 +114,6 @@ class AddonController(
             )
 
         deleteAddonUseCase.deleteAddon(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 }
