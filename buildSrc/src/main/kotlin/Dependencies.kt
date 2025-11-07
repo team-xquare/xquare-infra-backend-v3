@@ -1,11 +1,12 @@
 object Dependencies {
     object SpringBoot {
-        const val DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa"
-        const val WEB = "org.springframework.boot:spring-boot-starter-web"
-        const val SECURITY = "org.springframework.boot:spring-boot-starter-security"
-        const val VALIDATION = "org.springframework.boot:spring-boot-starter-validation"
-        const val WEBFLUX = "org.springframework.boot:spring-boot-starter-webflux"
-        const val TEST = "org.springframework.boot:spring-boot-starter-test"
+        const val VERSION = "3.5.7"
+        const val DATA_JPA = "org.springframework.boot:spring-boot-starter-data-jpa:$VERSION"
+        const val WEB = "org.springframework.boot:spring-boot-starter-web:$VERSION"
+        const val SECURITY = "org.springframework.boot:spring-boot-starter-security:$VERSION"
+        const val VALIDATION = "org.springframework.boot:spring-boot-starter-validation:$VERSION"
+        const val WEBFLUX = "org.springframework.boot:spring-boot-starter-webflux:$VERSION"
+        const val TEST = "org.springframework.boot:spring-boot-starter-test:$VERSION"
     }
 
     object SpringCloud {
@@ -13,6 +14,11 @@ object Dependencies {
         private const val FEIGN_OKHTTP_VERSION = "13.6"
         const val FEIGN = "org.springframework.cloud:spring-cloud-starter-openfeign:$FEIGN_VERSION"
         const val FEIGN_OKHTTP = "io.github.openfeign:feign-okhttp:$FEIGN_OKHTTP_VERSION"
+    }
+
+    object SpringDoc {
+        private const val OPENAPI_VERSION = "2.8.13"
+        const val OPENAPI = "org.springdoc:springdoc-openapi-starter-webmvc-ui:$OPENAPI_VERSION"
     }
 
     object Kotlin {
@@ -25,7 +31,8 @@ object Dependencies {
     }
 
     object Database {
-        const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j"
+        private const val MYSQL_CONNECTOR_VERSION = "9.5.0"
+        const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j:$MYSQL_CONNECTOR_VERSION"
     }
 
     object JWT {
@@ -36,7 +43,8 @@ object Dependencies {
     }
 
     object Test {
-        const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher"
+        private const val JUNIT_PLATFORM_LAUNCHER_VERSION = "6.0.1"
+        const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher:$JUNIT_PLATFORM_LAUNCHER_VERSION"
     }
 
     object HTTPClient {

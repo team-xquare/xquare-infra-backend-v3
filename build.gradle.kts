@@ -32,6 +32,8 @@ dependencies {
     implementation(Dependencies.SpringCloud.FEIGN)
     implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
 
+    implementation(Dependencies.SpringDoc.OPENAPI)
+
     implementation(Dependencies.Kotlin.JACKSON)
     implementation(Dependencies.Kotlin.JACKSON_DATAFORMAT_YAML)
     implementation(Dependencies.Kotlin.REFLECT)
