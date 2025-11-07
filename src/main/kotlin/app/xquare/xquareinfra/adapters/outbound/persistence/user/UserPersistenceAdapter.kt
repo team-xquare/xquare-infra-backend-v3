@@ -4,13 +4,11 @@ import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toDomai
 import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toPersistence
 import app.xquare.xquareinfra.application.application.ports.outbound.UserPersistenceForApplicationPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
+import app.xquare.xquareinfra.application.notice.ports.outbound.UserPersistenceForNoticePort
 import app.xquare.xquareinfra.application.team.ports.outbound.UserPersistenceForTeamPort
 import app.xquare.xquareinfra.application.user.ports.outbound.UserPersistenceForUserPort
 import app.xquare.xquareinfra.domain.user.User
-import app.xquare.xquareinfra.domain.user.UserRole
 import app.xquare.xquareinfra.infrastructure.persistence.user.repositories.UserRepository
-import app.xquare.xquareinfra.infrastructure.persistence.user.schema.UserPersistenceEntity
-import app.xquare.xquareinfra.infrastructure.persistence.user.schema.UserPersistenceRole
 import org.springframework.stereotype.Component
 import kotlin.jvm.optionals.getOrNull
 
@@ -20,7 +18,8 @@ class UserPersistenceAdapter(
 ) : UserPersistenceForAuthPort,
     UserPersistenceForUserPort,
     UserPersistenceForTeamPort,
-    UserPersistenceForApplicationPort {
+    UserPersistenceForApplicationPort,
+    UserPersistenceForNoticePort {
     override fun existsByUsername(username: String): Boolean = userRepository.existsByUsername(username)
 
     override fun save(user: User): User {
