@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.infrastructure.security
+package app.xquare.xquareinfra.infrastructure.security.api
 
 import app.xquare.xquareinfra.application.user.ports.inbound.GetUserQuery
 import app.xquare.xquareinfra.application.user.ports.inbound.GetUserResult

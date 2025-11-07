@@ -44,3 +44,7 @@ gitops:
 vault:
   token: ${VAULT_TOKEN}
   mount: ${VAULT_MOUNT}
+
+swagger:
+  user: ${SWAGGER_USER}
+  password: ${SWAGGER_PASSWORD}
