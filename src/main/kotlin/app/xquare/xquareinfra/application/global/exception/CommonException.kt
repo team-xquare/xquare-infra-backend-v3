@@ -11,5 +11,7 @@ sealed class CommonException : UseCaseException() {
 
     data object AddonNotFound : CommonException()
 
+    data object NoticeNotFound : CommonException()
+
     data object NotTeamMember : CommonException()
 }
