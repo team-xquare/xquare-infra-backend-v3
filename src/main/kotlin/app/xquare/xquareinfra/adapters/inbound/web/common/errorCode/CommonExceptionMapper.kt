@@ -18,6 +18,8 @@ object CommonExceptionMapper {
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.ADDON_NOT_FOUND.toWrappedDto())
             is CommonException.ApplicationNotFound ->
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.APPLICATION_NOT_FOUND.toWrappedDto())
+            is CommonException.NoticeNotFound ->
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonErrorCode.NOTICE_NOT_FOUND.toWrappedDto())
             is CommonException.NotTeamMember ->
                 ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonErrorCode.NOT_TEAM_MEMBER.toWrappedDto())
         }
