@@ -41,7 +41,12 @@ gitops:
   repo: ${GITOPS_REPO_NAME}
   branch: ${GITOPS_REPO_BRANCH}
 
+argo-workflows:
+  url: ${ARGO_WORKFLOWS_URL}
+  token: ${ARGO_WORKFLOWS_TOKEN}
+
 vault:
+  url: ${VAULT_URL}
   token: ${VAULT_TOKEN}
   mount: ${VAULT_MOUNT}
 
