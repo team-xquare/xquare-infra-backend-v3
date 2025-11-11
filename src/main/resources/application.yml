@@ -42,6 +42,7 @@ gitops:
   branch: ${GITOPS_REPO_BRANCH}
 
 vault:
+  url: ${VAULT_URL}
   token: ${VAULT_TOKEN}
   mount: ${VAULT_MOUNT}
 

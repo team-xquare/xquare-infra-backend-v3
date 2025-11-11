@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 
 @FeignClient(
     name = "vaultClient",
-    url = "https://vault-xquare-infra.dsmhs.kr",
+    url = "\${vault.url}",
 )
 interface VaultClient {
     @GetMapping("/v1/{mount}/{secret}")
