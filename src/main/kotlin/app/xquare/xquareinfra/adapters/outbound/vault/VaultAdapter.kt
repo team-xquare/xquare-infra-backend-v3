@@ -13,43 +13,45 @@ class VaultAdapter(
     private val vaultProperties: VaultProperties,
 ) : EnvironmentVariableVaultPort {
     override fun listEnvironmentVariables(application: Application): List<EnvironmentVariable> =
-        getSecretData(application.name)
+        getSecretData(application)
             .map { (key, value) -> EnvironmentVariable(application, key, value) }
 
     override fun setEnvironmentVariable(environmentVariable: EnvironmentVariable) {
-        val data = getSecretData(environmentVariable.application.name).toMutableMap()
+        val data = getSecretData(environmentVariable.application).toMutableMap()
         data[environmentVariable.key] = environmentVariable.value
-        setSecretData(environmentVariable.application.name, data)
+        setSecretData(environmentVariable.application, data)
     }
 
     override fun deleteEnvironmentVariable(
         application: Application,
         key: String,
     ) {
-        val data = getSecretData(application.name).toMutableMap()
+        val data = getSecretData(application).toMutableMap()
         data.remove(key)
-        setSecretData(application.name, data)
+        setSecretData(application, data)
     }
 
-    private fun getSecretData(name: String): Map<String, String> {
+    private fun getSecretData(application: Application): Map<String, String> {
         val response =
             vaultClient.getSecret(
                 authorization = vaultProperties.token,
                 mount = vaultProperties.mount,
-                secret = name,
+                secret = toSecretName(application),
             )
         return response.data
     }
 
     private fun setSecretData(
-        name: String,
+        application: Application,
         data: Map<String, String>,
     ) {
         vaultClient.setSecret(
             authorization = vaultProperties.token,
             mount = vaultProperties.mount,
-            secret = name,
+            secret = toSecretName(application),
             data = data,
         )
     }
+
+    private fun toSecretName(application: Application): String = "${application.team.name}-${application.name}"
 }
