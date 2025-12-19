@@ -17,7 +17,6 @@ import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamApp
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamsResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.TeamMemberDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.TeamSummaryResponseDto
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersUseCase
 import app.xquare.xquareinfra.application.team.ports.inbound.CreateTeamCommand
@@ -81,10 +80,14 @@ class TeamController(
         return GetTeamsResponseDto(
             teams =
                 result.teams.map {
-                    TeamSummaryResponseDto(
+                    GetTeamResponseDto(
                         id = it.id!!,
                         name = it.name,
                         type = it.type.toDto(),
+                        members =
+                            it.members.map { member ->
+                                TeamMemberDto(userId = member.user.id!!, role = member.role.toDto())
+                            },
                     )
                 },
         ).toWrappedDto()
