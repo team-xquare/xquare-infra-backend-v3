@@ -7,6 +7,5 @@ data class Addon(
     val name: String,
     val team: Team,
     val type: AddonType,
-    val tier: AddonTier,
     val storageGi: Int,
 )

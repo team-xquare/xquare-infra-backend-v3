@@ -3,8 +3,6 @@ package app.xquare.xquareinfra.infrastructure.persistence.addon.schema
 import app.xquare.xquareinfra.infrastructure.persistence.team.schema.TeamPersistenceEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -26,9 +24,6 @@ data class AddonPersistenceEntity(
     val team: TeamPersistenceEntity,
     @Column(nullable = false)
     val type: String,
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val tier: AddonPersistenceTier,
     @Column(nullable = false)
     val storageGi: Int,
 )

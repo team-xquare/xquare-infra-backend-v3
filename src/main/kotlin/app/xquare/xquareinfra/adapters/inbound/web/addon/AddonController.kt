@@ -19,7 +19,6 @@ import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -51,7 +50,6 @@ class AddonController(
                 teamId = request.teamId,
                 name = request.name,
                 type = request.type.toDomain(),
-                tier = request.tier.toDomain(),
                 storageGi = request.storageGi,
             )
 
@@ -78,7 +76,6 @@ class AddonController(
             id = addon.id!!,
             name = addon.name,
             type = addon.type.toDto(),
-            tier = addon.tier.toDto(),
             storageGi = addon.storageGi,
         ).toWrappedDto()
     }

@@ -47,7 +47,6 @@ class AddonService(
             Addon(
                 name = command.name,
                 type = command.type,
-                tier = command.tier,
                 storageGi = command.storageGi,
                 team = team,
             )

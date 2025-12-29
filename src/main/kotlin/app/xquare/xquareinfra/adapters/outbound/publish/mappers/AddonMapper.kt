@@ -7,6 +7,5 @@ fun Addon.toGitOps(): GitOpsAddon =
     GitOpsAddon(
         name = this.name,
         type = this.type.toGitOps(),
-        tier = this.tier.toGitOps(),
         storage = "${this.storageGi}Gi",
     )

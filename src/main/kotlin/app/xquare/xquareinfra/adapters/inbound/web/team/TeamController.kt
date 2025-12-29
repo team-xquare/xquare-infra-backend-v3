@@ -156,7 +156,6 @@ class TeamController(
                         id = it.id!!,
                         name = it.name,
                         type = it.type.toDto(),
-                        tier = it.tier.toDto(),
                         storageGi = it.storageGi,
                     )
                 },
