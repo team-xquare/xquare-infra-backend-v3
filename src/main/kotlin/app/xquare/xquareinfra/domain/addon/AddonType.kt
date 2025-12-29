@@ -7,4 +7,6 @@ enum class AddonType {
     MONGODB,
     KAFKA,
     RABBITMQ,
+    ELK,
+    DEBEZIUM,
 }

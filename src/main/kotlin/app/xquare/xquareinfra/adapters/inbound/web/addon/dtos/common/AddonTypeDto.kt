@@ -12,6 +12,8 @@ enum class AddonTypeDto(
     MONGODB("mongodb"),
     KAFKA("kafka"),
     RABBITMQ("rabbitmq"),
+    ELK("elk"),
+    DEBEZIUM("debezium"),
 }
 
 fun AddonTypeDto.toDomain(): AddonType =
@@ -22,6 +24,8 @@ fun AddonTypeDto.toDomain(): AddonType =
         AddonTypeDto.MONGODB -> AddonType.MONGODB
         AddonTypeDto.KAFKA -> AddonType.KAFKA
         AddonTypeDto.RABBITMQ -> AddonType.RABBITMQ
+        AddonTypeDto.ELK -> AddonType.ELK
+        AddonTypeDto.DEBEZIUM -> AddonType.DEBEZIUM
     }
 
 fun AddonType.toDto(): AddonTypeDto =
@@ -32,4 +36,6 @@ fun AddonType.toDto(): AddonTypeDto =
         AddonType.MONGODB -> AddonTypeDto.MONGODB
         AddonType.KAFKA -> AddonTypeDto.KAFKA
         AddonType.RABBITMQ -> AddonTypeDto.RABBITMQ
+        AddonType.ELK -> AddonTypeDto.ELK
+        AddonType.DEBEZIUM -> AddonTypeDto.DEBEZIUM
     }

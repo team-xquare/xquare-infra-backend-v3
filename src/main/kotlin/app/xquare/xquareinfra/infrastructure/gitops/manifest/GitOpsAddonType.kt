@@ -11,4 +11,6 @@ enum class GitOpsAddonType(
     MONGODB("mongodb"),
     KAFKA("kafka"),
     RABBITMQ("rabbitmq"),
+    ELK("elk"),
+    DEBEZIUM("debezium"),
 }

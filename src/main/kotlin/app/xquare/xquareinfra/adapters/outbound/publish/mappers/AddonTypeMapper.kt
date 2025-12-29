@@ -11,4 +11,6 @@ fun AddonType.toGitOps(): GitOpsAddonType =
         AddonType.MONGODB -> GitOpsAddonType.MONGODB
         AddonType.KAFKA -> GitOpsAddonType.KAFKA
         AddonType.RABBITMQ -> GitOpsAddonType.RABBITMQ
+        AddonType.ELK -> GitOpsAddonType.ELK
+        AddonType.DEBEZIUM -> GitOpsAddonType.DEBEZIUM
     }
