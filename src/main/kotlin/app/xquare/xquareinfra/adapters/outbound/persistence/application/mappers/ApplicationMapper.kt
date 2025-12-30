@@ -5,10 +5,13 @@ import app.xquare.xquareinfra.adapters.outbound.persistence.team.mappers.toPersi
 import app.xquare.xquareinfra.domain.application.Application
 import app.xquare.xquareinfra.domain.application.ApplicationConfiguration
 import app.xquare.xquareinfra.infrastructure.persistence.application.schema.ApplicationPersistenceEntity
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 
-private val objectMapper = jacksonObjectMapper()
+private val objectMapper =
+    jacksonObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 fun Application.toPersistence(): ApplicationPersistenceEntity {
     val versionedConfig =

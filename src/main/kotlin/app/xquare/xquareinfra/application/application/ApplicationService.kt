@@ -68,7 +68,7 @@ class ApplicationService(
             throw CommonException.NotTeamMember
         }
 
-        if (application.status == ApplicationStatus.UNPUBLISHED) {
+        if (application.status != ApplicationStatus.PUBLISHED) {
             return GetApplicationResult(application)
         }
 

@@ -1,5 +1,7 @@
 package app.xquare.xquareinfra.application.team
 
+import app.xquare.xquareinfra.application.application.ApplicationException
+import app.xquare.xquareinfra.application.application.ports.outbound.ApplicationConfigurationPublishPort
 import app.xquare.xquareinfra.application.global.exception.CommonException
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersCommand
 import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersResult
@@ -32,6 +34,7 @@ import app.xquare.xquareinfra.application.team.ports.outbound.AddonPersistenceFo
 import app.xquare.xquareinfra.application.team.ports.outbound.ApplicationPersistenceForTeamPort
 import app.xquare.xquareinfra.application.team.ports.outbound.TeamPersistenceForTeamPort
 import app.xquare.xquareinfra.application.team.ports.outbound.UserPersistenceForTeamPort
+import app.xquare.xquareinfra.domain.application.ApplicationStatus
 import app.xquare.xquareinfra.domain.team.Team
 import app.xquare.xquareinfra.domain.team.TeamMember
 import app.xquare.xquareinfra.domain.team.TeamMemberRole
@@ -44,6 +47,7 @@ class TeamService(
     private val teamPersistencePort: TeamPersistenceForTeamPort,
     private val userPersistencePort: UserPersistenceForTeamPort,
     private val applicationPersistencePort: ApplicationPersistenceForTeamPort,
+    private val applicationConfigurationPublishPort: ApplicationConfigurationPublishPort,
     private val addonPersistencePort: AddonPersistenceForTeamPort,
 ) : CreateTeamUseCase,
     ListTeamsUseCase,
@@ -102,7 +106,20 @@ class TeamService(
             throw CommonException.NotTeamMember
         }
 
-        val applications = applicationPersistencePort.listByTeamId(query.teamId)
+        val applications =
+            applicationPersistencePort.listByTeamId(query.teamId).map lit@{ application ->
+                if (application.status != ApplicationStatus.PUBLISHED) {
+                    return@lit application
+                }
+
+                val configuration =
+                    applicationConfigurationPublishPort
+                        .getPublishedConfiguration(application.team.name, application.name)
+                        ?: throw ApplicationException.FailedToFetchConfiguration
+
+                return@lit application.copy(configuration = configuration)
+            }
+
         return ListTeamApplicationsResult(applications)
     }
 
