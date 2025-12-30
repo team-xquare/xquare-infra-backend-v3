@@ -8,6 +8,7 @@ import app.xquare.xquareinfra.infrastructure.gitops.manifest.GitOpsProject
 import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsApplyAddonPayload
 import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsApplyApplicationPayload
 import app.xquare.xquareinfra.infrastructure.gitops.payloads.GitOpsRemovePayload
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -19,33 +20,35 @@ class GitOpsClient(
     private val gitOpsProperties: GitOpsProperties,
     private val githubClient: GithubClient,
 ) {
-    private val yamlMapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
+    private val yamlMapper =
+        ObjectMapper(
+            YAMLFactory(),
+        ).registerKotlinModule()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     fun getApplication(
         projectName: String,
         applicationName: String,
     ): GitOpsApplication? =
-        githubClient
-            .getRepositoryContent(
-                authorization = "Bearer ${gitOpsProperties.token}",
-                owner = gitOpsProperties.owner,
-                repo = gitOpsProperties.repo,
-                path = "projects/$projectName.yaml",
-                branch = gitOpsProperties.branch,
-            ).body
-            ?.content
-            ?.let {
-                return try {
-                    val decoded = Base64.getDecoder().decode(it.replace("\n", ""))
-                    yamlMapper
-                        .readValue(decoded, GitOpsProject::class.java)
-                        .applications
-                        ?.find { application -> application.name == applicationName }
-                } catch (e: Exception) {
-                    println(e)
-                    null
-                }
-            }
+        runCatching {
+            val content =
+                githubClient
+                    .getRepositoryContent(
+                        authorization = "Bearer ${gitOpsProperties.token}",
+                        owner = gitOpsProperties.owner,
+                        repo = gitOpsProperties.repo,
+                        path = "projects/$projectName.yaml",
+                        branch = gitOpsProperties.branch,
+                    ).body
+                    ?.content
+                    ?: return null
+
+            val decoded = Base64.getDecoder().decode(content.replace("\n", ""))
+            yamlMapper
+                .readValue(decoded, GitOpsProject::class.java)
+                .applications
+                ?.find { application -> application.name == applicationName }
+        }.getOrNull()
 
     fun applyApplication(
         projectName: String,
