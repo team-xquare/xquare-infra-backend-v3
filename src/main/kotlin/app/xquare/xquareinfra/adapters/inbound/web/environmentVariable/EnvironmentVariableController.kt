@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,7 +39,7 @@ class EnvironmentVariableController(
     fun listEnvironmentVariables(
         @PathVariable applicationId: Long,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<ListEnvironmentVariablesResponseDto> {
         val query =
             ListEnvironmentVariablesQuery(
                 userId = user.id!!,
@@ -49,14 +48,12 @@ class EnvironmentVariableController(
 
         val result = listEnvironmentVariablesUseCase.listEnvironmentVariables(query)
 
-        return ResponseEntity.ok(
-            ListEnvironmentVariablesResponseDto(
-                environmentVariables =
-                    result.environmentVariables.map {
-                        EnvironmentVariableResponseDto(name = it.key)
-                    },
-            ).toWrappedDto(),
-        )
+        return ListEnvironmentVariablesResponseDto(
+            environmentVariables =
+                result.environmentVariables.map {
+                    EnvironmentVariableResponseDto(name = it.key)
+                },
+        ).toWrappedDto()
     }
 
     @Operation(summary = "애플리케이션 환경변수 추가 또는 수정")
@@ -65,7 +62,7 @@ class EnvironmentVariableController(
         @PathVariable applicationId: Long,
         @RequestBody @Valid request: SetEnvironmentVariableRequestDto,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             SetEnvironmentVariableCommand(
                 userId = user.id!!,
@@ -75,7 +72,7 @@ class EnvironmentVariableController(
             )
 
         setEnvironmentVariableUseCase.setEnvironmentVariable(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 
     @Operation(summary = "애플리케이션 환경변수 삭제")
@@ -84,7 +81,7 @@ class EnvironmentVariableController(
         @PathVariable applicationId: Long,
         @PathVariable name: String,
         @AuthenticationPrincipal user: User,
-    ): ResponseEntity<*> {
+    ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteEnvironmentVariableCommand(
                 userId = user.id!!,
@@ -93,6 +90,6 @@ class EnvironmentVariableController(
             )
 
         deleteEnvironmentVariableUseCase.deleteEnvironmentVariable(command)
-        return ResponseEntity.ok(APiWrappedResponseDto.success())
+        return APiWrappedResponseDto.success()
     }
 }
