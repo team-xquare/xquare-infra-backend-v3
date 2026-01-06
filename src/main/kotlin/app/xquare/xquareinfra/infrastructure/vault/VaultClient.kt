@@ -2,6 +2,7 @@ package app.xquare.xquareinfra.infrastructure.vault
 
 import app.xquare.xquareinfra.infrastructure.vault.dto.GetSecretResponseDto
 import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -26,5 +27,12 @@ interface VaultClient {
         @PathVariable mount: String,
         @PathVariable secret: String,
         @RequestBody data: Map<String, String>,
+    )
+
+    @DeleteMapping("/v1/{mount}/{secret}")
+    fun deleteSecret(
+        @RequestHeader("X-Vault-Token") authorization: String,
+        @PathVariable mount: String,
+        @PathVariable secret: String,
     )
 }
