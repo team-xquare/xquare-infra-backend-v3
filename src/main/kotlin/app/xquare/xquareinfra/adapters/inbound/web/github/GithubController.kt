@@ -6,7 +6,6 @@ import app.xquare.xquareinfra.infrastructure.github.GithubApplicationProperties
 import app.xquare.xquareinfra.infrastructure.github.GithubOAuthClient
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "GitHub")
-@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/v1/github")
 class GithubController(
