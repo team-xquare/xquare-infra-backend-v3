@@ -1,5 +1,6 @@
 package app.xquare.xquareinfra.application.environmentVariable
 
+import app.xquare.xquareinfra.adapters.outbound.vault.VaultException
 import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableCommand
 import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableResult
 import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableUseCase
@@ -70,10 +71,14 @@ class EnvironmentVariableService(
             throw CommonException.NotTeamMember
         }
 
-        environmentVariableVaultPort.deleteEnvironmentVariable(
-            application = application,
-            key = command.key,
-        )
+        try {
+            environmentVariableVaultPort.deleteEnvironmentVariable(
+                application = application,
+                key = command.key,
+            )
+        } catch (e: VaultException.VaultSecretNotFound) {
+            throw EnvironmentVariableException.VariableNotFound
+        }
 
         return DeleteEnvironmentVariableResult
     }

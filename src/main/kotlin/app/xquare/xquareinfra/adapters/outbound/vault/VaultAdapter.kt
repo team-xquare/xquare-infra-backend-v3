@@ -28,6 +28,9 @@ class VaultAdapter(
         key: String,
     ) {
         val data = getSecretData(application)?.toMutableMap() ?: mutableMapOf()
+        if (!data.containsKey(key)) {
+            throw VaultException.VaultSecretNotFound()
+        }
         data.remove(key)
         setSecretData(application, data)
     }
@@ -46,12 +49,20 @@ class VaultAdapter(
         application: Application,
         data: Map<String, String>,
     ) {
-        vaultClient.setSecret(
-            authorization = vaultProperties.token,
-            mount = vaultProperties.mount,
-            secret = toSecretName(application),
-            data = data,
-        )
+        if (data.isEmpty()) {
+            vaultClient.deleteSecret(
+                authorization = vaultProperties.token,
+                mount = vaultProperties.mount,
+                secret = toSecretName(application),
+            )
+        } else {
+            vaultClient.setSecret(
+                authorization = vaultProperties.token,
+                mount = vaultProperties.mount,
+                secret = toSecretName(application),
+                data = data,
+            )
+        }
     }
 
     private fun toSecretName(application: Application): String = "${application.team.name}-${application.name}"
