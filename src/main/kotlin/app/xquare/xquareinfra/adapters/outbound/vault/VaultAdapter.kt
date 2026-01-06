@@ -14,10 +14,11 @@ class VaultAdapter(
 ) : EnvironmentVariableVaultPort {
     override fun listEnvironmentVariables(application: Application): List<EnvironmentVariable> =
         getSecretData(application)
+            .orEmpty()
             .map { (key, value) -> EnvironmentVariable(application, key, value) }
 
     override fun setEnvironmentVariable(environmentVariable: EnvironmentVariable) {
-        val data = getSecretData(environmentVariable.application).toMutableMap()
+        val data = getSecretData(environmentVariable.application)?.toMutableMap() ?: mutableMapOf()
         data[environmentVariable.key] = environmentVariable.value
         setSecretData(environmentVariable.application, data)
     }
@@ -26,20 +27,20 @@ class VaultAdapter(
         application: Application,
         key: String,
     ) {
-        val data = getSecretData(application).toMutableMap()
+        val data = getSecretData(application)?.toMutableMap() ?: mutableMapOf()
         data.remove(key)
         setSecretData(application, data)
     }
 
-    private fun getSecretData(application: Application): Map<String, String> {
-        val response =
-            vaultClient.getSecret(
-                authorization = vaultProperties.token,
-                mount = vaultProperties.mount,
-                secret = toSecretName(application),
-            )
-        return response.data
-    }
+    private fun getSecretData(application: Application): Map<String, String>? =
+        runCatching {
+            vaultClient
+                .getSecret(
+                    authorization = vaultProperties.token,
+                    mount = vaultProperties.mount,
+                    secret = toSecretName(application),
+                ).data
+        }.getOrNull()
 
     private fun setSecretData(
         application: Application,
