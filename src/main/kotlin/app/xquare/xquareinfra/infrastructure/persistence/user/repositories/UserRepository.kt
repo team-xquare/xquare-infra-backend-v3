@@ -9,4 +9,8 @@ interface UserRepository : JpaRepository<UserPersistenceEntity, Long> {
     fun existsByUsername(username: String): Boolean
 
     fun findByUsername(username: String): UserPersistenceEntity?
+
+    fun findByNameContainingIgnoreCase(name: String): List<UserPersistenceEntity>
+
+    fun findByEmailContainingIgnoreCase(name: String): List<UserPersistenceEntity>
 }
