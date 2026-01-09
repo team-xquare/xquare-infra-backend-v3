@@ -157,6 +157,7 @@ class TeamController(
                         name = it.name,
                         type = it.type.toDto(),
                         storageGi = it.storageGi,
+                        configuration = it.configuration.toDto(),
                     )
                 },
         ).toWrappedDto()

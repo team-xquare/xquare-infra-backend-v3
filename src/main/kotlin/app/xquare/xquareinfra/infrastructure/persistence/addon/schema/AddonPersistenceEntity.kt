@@ -26,4 +26,6 @@ data class AddonPersistenceEntity(
     val type: String,
     @Column(nullable = false)
     val storageGi: Int,
+    @Column(columnDefinition = "TEXT")
+    val configuration: String?,
 )

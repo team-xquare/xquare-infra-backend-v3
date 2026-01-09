@@ -13,6 +13,7 @@ fun AddonPersistenceEntity.toDomain(): Addon =
         team = this.team.toDomain(),
         type = AddonType.valueOf(this.type), // string → enum
         storageGi = this.storageGi,
+        configuration = this.configuration.toAddonConfiguration(),
     )
 
 fun Addon.toPersistence(): AddonPersistenceEntity =
@@ -22,4 +23,5 @@ fun Addon.toPersistence(): AddonPersistenceEntity =
         team = this.team.toPersistence(),
         type = this.type.name, // enum → string
         storageGi = this.storageGi,
+        configuration = this.configuration.toJsonOrNull(),
     )
