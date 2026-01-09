@@ -19,7 +19,6 @@ class CorsConfig(
                 allowedOrigins = corsProperties.allowedOrigins
                 allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 allowedHeaders = listOf("*")
-                allowCredentials = true
             }
         source.registerCorsConfiguration("/api/**", openCors)
 
