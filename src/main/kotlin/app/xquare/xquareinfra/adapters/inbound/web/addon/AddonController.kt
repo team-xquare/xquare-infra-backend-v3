@@ -51,6 +51,7 @@ class AddonController(
                 name = request.name,
                 type = request.type.toDomain(),
                 storageGi = request.storageGi,
+                configuration = request.configuration.toDomain(),
             )
 
         val result = createAddonUseCase.createAddon(command)
@@ -77,6 +78,7 @@ class AddonController(
             name = addon.name,
             type = addon.type.toDto(),
             storageGi = addon.storageGi,
+            configuration = addon.configuration.toDto(),
         ).toWrappedDto()
     }
 

@@ -1,5 +1,6 @@
 package app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.request
 
+import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.common.AddonConfigurationDto
 import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.common.AddonTypeDto
 
 data class CreateAddonRequestDto(
@@ -7,4 +8,5 @@ data class CreateAddonRequestDto(
     val name: String,
     val type: AddonTypeDto,
     val storageGi: Int,
+    val configuration: AddonConfigurationDto,
 )
