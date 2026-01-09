@@ -19,6 +19,7 @@ import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -41,7 +42,7 @@ class AddonController(
     @Operation(summary = "애드온 생성")
     @PostMapping
     fun createAddon(
-        @RequestBody request: CreateAddonRequestDto,
+        @RequestBody @Valid request: CreateAddonRequestDto,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<CreateAddonResponseDto> {
         val command =

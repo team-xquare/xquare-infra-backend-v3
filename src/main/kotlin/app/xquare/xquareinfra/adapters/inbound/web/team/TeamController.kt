@@ -44,6 +44,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -166,7 +167,7 @@ class TeamController(
     @Operation(summary = "팀 생성")
     @PostMapping
     fun createTeam(
-        @RequestBody request: CreateTeamRequestDto,
+        @RequestBody @Valid request: CreateTeamRequestDto,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<CreateTeamResponseDto> {
         val command =
