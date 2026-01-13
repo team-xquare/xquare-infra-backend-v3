@@ -17,7 +17,7 @@ class OkHttpConfig(
         val cache = Cache(File(okHttpProperties.cacheDir), cacheSize)
 
         val logging = HttpLoggingInterceptor()
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+        logging.setLevel(HttpLoggingInterceptor.Level.BASIC)
 
         return OkHttpClient
             .Builder()

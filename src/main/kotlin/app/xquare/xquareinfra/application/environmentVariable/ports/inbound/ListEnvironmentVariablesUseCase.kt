@@ -7,6 +7,7 @@ data class ListEnvironmentVariablesQuery(
 
 data class EnvironmentVariableSummary(
     val key: String,
+    val value: String,
 )
 
 data class ListEnvironmentVariablesResult(
