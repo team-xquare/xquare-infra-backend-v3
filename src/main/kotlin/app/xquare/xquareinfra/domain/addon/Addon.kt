@@ -8,4 +8,5 @@ data class Addon(
     val team: Team,
     val type: AddonType,
     val storageGi: Int,
+    val configuration: AddonConfiguration,
 )

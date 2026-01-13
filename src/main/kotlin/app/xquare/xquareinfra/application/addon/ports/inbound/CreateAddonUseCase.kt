@@ -1,5 +1,6 @@
 package app.xquare.xquareinfra.application.addon.ports.inbound
 
+import app.xquare.xquareinfra.domain.addon.AddonConfiguration
 import app.xquare.xquareinfra.domain.addon.AddonType
 
 data class CreateAddonCommand(
@@ -8,6 +9,7 @@ data class CreateAddonCommand(
     val name: String,
     val type: AddonType,
     val storageGi: Int,
+    val configuration: AddonConfiguration,
 )
 
 data class CreateAddonResult(

@@ -4,4 +4,5 @@ data class GitOpsAddon(
     val name: String,
     val type: GitOpsAddonType,
     val storage: String,
+    val bootstrap: String?,
 )

@@ -14,18 +14,10 @@ class CorsConfig(
     fun corsConfigurationSource(): CorsConfigurationSource {
         val source = UrlBasedCorsConfigurationSource()
 
-        val authCors =
-            CorsConfiguration().apply {
-                allowedOrigins = corsProperties.allowedOrigins
-                allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                allowedHeaders = listOf("*")
-            }
-        source.registerCorsConfiguration("/api/auth/**", authCors)
-
         val openCors =
             CorsConfiguration().apply {
-                allowedOrigins = listOf("*")
-                allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                allowedOrigins = corsProperties.allowedOrigins
+                allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 allowedHeaders = listOf("*")
             }
         source.registerCorsConfiguration("/api/**", openCors)

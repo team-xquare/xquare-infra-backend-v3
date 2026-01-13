@@ -51,7 +51,7 @@ class EnvironmentVariableController(
         return ListEnvironmentVariablesResponseDto(
             environmentVariables =
                 result.environmentVariables.map {
-                    EnvironmentVariableResponseDto(name = it.key)
+                    EnvironmentVariableResponseDto(key = it.key, value = it.value)
                 },
         ).toWrappedDto()
     }

@@ -3,7 +3,8 @@ package app.xquare.xquareinfra.adapters.inbound.web.environmentVariable.dtos.res
 import app.xquare.xquareinfra.infrastructure.web.dto.SuccessResponseDto
 
 data class EnvironmentVariableResponseDto(
-    val name: String,
+    val key: String,
+    val value: String,
 )
 
 data class ListEnvironmentVariablesResponseDto(

@@ -8,4 +8,5 @@ fun Addon.toGitOps(): GitOpsAddon =
         name = this.name,
         type = this.type.toGitOps(),
         storage = "${this.storageGi}Gi",
+        bootstrap = this.configuration.bootstrap,
     )

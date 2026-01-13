@@ -49,6 +49,7 @@ class AddonService(
                 type = command.type,
                 storageGi = command.storageGi,
                 team = team,
+                configuration = command.configuration,
             )
 
         addonPublishPort.publishAddon(team.name, addon)

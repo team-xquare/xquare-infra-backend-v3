@@ -39,7 +39,7 @@ class VaultAdapter(
         runCatching {
             vaultClient
                 .getSecret(
-                    authorization = vaultProperties.token,
+                    authorization = "Bearer ${vaultProperties.token}",
                     mount = vaultProperties.mount,
                     secret = toSecretName(application),
                 ).data
@@ -51,13 +51,13 @@ class VaultAdapter(
     ) {
         if (data.isEmpty()) {
             vaultClient.deleteSecret(
-                authorization = vaultProperties.token,
+                authorization = "Bearer ${vaultProperties.token}",
                 mount = vaultProperties.mount,
                 secret = toSecretName(application),
             )
         } else {
             vaultClient.setSecret(
-                authorization = vaultProperties.token,
+                authorization = "Bearer ${vaultProperties.token}",
                 mount = vaultProperties.mount,
                 secret = toSecretName(application),
                 data = data,

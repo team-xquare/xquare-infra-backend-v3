@@ -1,9 +1,9 @@
-package app.xquare.xquareinfra.adapters.inbound.web.user.dtos
+package app.xquare.xquareinfra.adapters.inbound.web.user.dtos.response
 
 import app.xquare.xquareinfra.domain.user.UserRole
 import app.xquare.xquareinfra.infrastructure.web.dto.SuccessResponseDto
 
-data class CurrentUserResponseDto(
+data class UserResponseDto(
     val id: Long,
     val username: String,
     val role: UserRole,

@@ -57,7 +57,7 @@ class EnvironmentVariableService(
         }
 
         val environmentVariables = environmentVariableVaultPort.listEnvironmentVariables(application)
-        val summaries = environmentVariables.map { EnvironmentVariableSummary(it.key) }
+        val summaries = environmentVariables.map { EnvironmentVariableSummary(it.key, it.value) }
 
         return ListEnvironmentVariablesResult(environmentVariables = summaries)
     }

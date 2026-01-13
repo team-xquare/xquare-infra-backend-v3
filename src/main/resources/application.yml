@@ -35,6 +35,11 @@ okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}
   cache-size-mb: ${OKHTTP_CACHE_SIZE_MB}
 
+github-app:
+  client-id: ${GITHUB_APP_CLIENT_ID}
+  client-secret: ${GITHUB_APP_CLIENT_SECRET}
+  redirect-uri: ${GITHUB_APP_REDIRECT_URI}
+
 gitops:
   token: ${GITOPS_TOKEN}
   owner: ${GITOPS_REPO_OWNER}

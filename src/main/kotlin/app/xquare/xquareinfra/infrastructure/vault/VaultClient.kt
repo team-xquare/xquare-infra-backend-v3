@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RequestHeader
 interface VaultClient {
     @GetMapping("/v1/{mount}/{secret}")
     fun getSecret(
-        @RequestHeader("X-Vault-Token") authorization: String,
+        @RequestHeader("Authorization") authorization: String,
         @PathVariable mount: String,
         @PathVariable secret: String,
     ): GetSecretResponseDto
 
     @PostMapping("/v1/{mount}/{secret}")
     fun setSecret(
-        @RequestHeader("X-Vault-Token") authorization: String,
+        @RequestHeader("Authorization") authorization: String,
         @PathVariable mount: String,
         @PathVariable secret: String,
         @RequestBody data: Map<String, String>,
@@ -31,7 +31,7 @@ interface VaultClient {
 
     @DeleteMapping("/v1/{mount}/{secret}")
     fun deleteSecret(
-        @RequestHeader("X-Vault-Token") authorization: String,
+        @RequestHeader("Authorization") authorization: String,
         @PathVariable mount: String,
         @PathVariable secret: String,
     )
