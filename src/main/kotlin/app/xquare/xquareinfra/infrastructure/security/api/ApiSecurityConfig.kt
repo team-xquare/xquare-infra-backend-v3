@@ -26,7 +26,7 @@ class ApiSecurityConfig(
                 it.requestMatchers("/api/**").authenticated()
                 it.anyRequest().permitAll()
             }.exceptionHandling {
-                it.authenticationEntryPoint { request, response, authException ->
+                it.authenticationEntryPoint { _, response, _ ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
                 }
             }.httpBasic { it.disable() }
