@@ -3,7 +3,7 @@ package app.xquare.xquareinfra.adapters.inbound.web.auth.dtos
 import jakarta.validation.constraints.*
 
 data class RegisterRequestDto(
-    @field:Size(min = 4, max = 20)
+    @field:Size(min = 4, max = 15)
     @field:Pattern(
         regexp = "^[A-z0-9_-]+$",
     )
