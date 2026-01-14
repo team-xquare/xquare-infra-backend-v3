@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class LoginRequestDto(
-    @field:Size(min = 4, max = 20)
+    @field:Size(min = 4, max = 15)
     @field:Pattern(
         regexp = "^[A-z0-9_-]+$",
     )
