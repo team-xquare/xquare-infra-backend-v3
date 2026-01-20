@@ -66,10 +66,6 @@ class TeamController(
     }
 
     @Operation(summary = "팀 상세정보 조회")
-    @ApiResponse(
-        responseCode = "200",
-        content = [Content(schema = Schema(implementation = CreateTeamResponseDto::class))],
-    )
     @GetMapping("/{teamId}")
     fun getTeam(
         @PathVariable teamId: Long,
