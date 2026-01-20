@@ -1,20 +1,6 @@
 package app.xquare.xquareinfra.application.application
 
-import app.xquare.xquareinfra.application.application.ports.inbound.CreateApplicationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.CreateApplicationResult
-import app.xquare.xquareinfra.application.application.ports.inbound.CreateApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.DeleteApplicationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.DeleteApplicationResult
-import app.xquare.xquareinfra.application.application.ports.inbound.DeleteApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.GetApplicationQuery
-import app.xquare.xquareinfra.application.application.ports.inbound.GetApplicationResult
-import app.xquare.xquareinfra.application.application.ports.inbound.GetApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationConfigurationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationConfigurationResult
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationConfigurationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationStatusCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationStatusResult
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationStatusUseCase
+import app.xquare.xquareinfra.application.application.ports.inbound.*
 import app.xquare.xquareinfra.application.application.ports.outbound.ApplicationConfigurationPublishPort
 import app.xquare.xquareinfra.application.application.ports.outbound.ApplicationPersistenceForApplicationPort
 import app.xquare.xquareinfra.application.application.ports.outbound.TeamPersistenceForApplicationPort
@@ -40,11 +26,11 @@ class ApplicationService(
     UpdateApplicationStatusUseCase,
     DeleteApplicationUseCase {
     override fun createApplication(command: CreateApplicationCommand): CreateApplicationResult {
-        if (applicationPersistencePort.existsByName(command.name)) {
+        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
+
+        if (applicationPersistencePort.existsByTeamIdAndName(team.id!!, command.name)) {
             throw ApplicationException.ApplicationNameAlreadyExists
         }
-
-        val team = teamPersistencePort.findById(command.teamId) ?: throw CommonException.TeamNotFound
 
         val application =
             Application(
