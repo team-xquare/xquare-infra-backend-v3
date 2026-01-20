@@ -1,9 +1,10 @@
 package app.xquare.xquareinfra.application.team.ports.inbound
 
 import app.xquare.xquareinfra.domain.team.TeamMemberRole
+import app.xquare.xquareinfra.domain.user.User
 
 data class AddOrUpdateMembersCommand(
-    val userId: Long,
+    val user: User,
     val teamId: Long,
     val members: List<AddOrUpdateMember>,
 ) {

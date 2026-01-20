@@ -1,9 +1,10 @@
 package app.xquare.xquareinfra.application.application.ports.inbound
 
 import app.xquare.xquareinfra.domain.application.ApplicationStatus
+import app.xquare.xquareinfra.domain.user.User
 
 data class UpdateApplicationStatusCommand(
-    val userId: Long,
+    val user: User,
     val applicationId: Long,
     val status: ApplicationStatus,
 )

@@ -35,7 +35,7 @@ fun ApplicationPersistenceEntity.toDomain(): Application {
     val rootNode = objectMapper.readTree(configuration)
     // handle version changes later
     val configNode = rootNode["config"]
-    val config = objectMapper.readValue<ApplicationConfiguration>(configNode.toString())
+    val config = runCatching { objectMapper.readValue<ApplicationConfiguration>(configNode.toString()) }.getOrNull()
 
     return Application(
         id = id,

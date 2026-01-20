@@ -18,7 +18,7 @@ class DeploymentService(
             applicationPersistencePort.findById(query.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(query.userId)) {
+        if (!application.team.isMember(query.user)) {
             throw CommonException.NotTeamMember
         }
 

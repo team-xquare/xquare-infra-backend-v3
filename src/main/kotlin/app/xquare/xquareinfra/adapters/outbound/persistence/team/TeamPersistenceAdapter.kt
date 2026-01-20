@@ -18,6 +18,8 @@ class TeamPersistenceAdapter(
     TeamPersistenceForAddonPort {
     override fun existsByName(name: String): Boolean = teamRepository.existsByName(name)
 
+    override fun listAll(): List<Team> = teamRepository.findAll().map { it.toDomain() }
+
     override fun listByUserId(userId: Long): List<Team> = teamRepository.findAllByMembersUserId(userId).map { it.toDomain() }
 
     override fun findById(teamId: Long): Team? = teamRepository.findById(teamId).getOrNull()?.toDomain()

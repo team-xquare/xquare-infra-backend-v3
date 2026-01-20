@@ -1,16 +1,7 @@
 package app.xquare.xquareinfra.application.environmentVariable
 
 import app.xquare.xquareinfra.adapters.outbound.vault.VaultException
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableCommand
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableResult
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.DeleteEnvironmentVariableUseCase
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.EnvironmentVariableSummary
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.ListEnvironmentVariablesQuery
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.ListEnvironmentVariablesResult
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.ListEnvironmentVariablesUseCase
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.SetEnvironmentVariableCommand
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.SetEnvironmentVariableResult
-import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.SetEnvironmentVariableUseCase
+import app.xquare.xquareinfra.application.environmentVariable.ports.inbound.*
 import app.xquare.xquareinfra.application.environmentVariable.ports.outbound.ApplicationPersistenceForEnvironmentVariablePort
 import app.xquare.xquareinfra.application.environmentVariable.ports.outbound.EnvironmentVariableVaultPort
 import app.xquare.xquareinfra.application.global.exception.CommonException
@@ -31,7 +22,7 @@ class EnvironmentVariableService(
             applicationPersistencePort.findById(command.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(command.userId)) {
+        if (!application.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -52,7 +43,7 @@ class EnvironmentVariableService(
             applicationPersistencePort.findById(query.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(query.userId)) {
+        if (!application.team.isMember(query.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -67,7 +58,7 @@ class EnvironmentVariableService(
             applicationPersistencePort.findById(command.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(command.userId)) {
+        if (!application.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 

@@ -1,7 +1,9 @@
 package app.xquare.xquareinfra.application.addon.ports.inbound
 
+import app.xquare.xquareinfra.domain.user.User
+
 data class UpdateAddonCommand(
-    val userId: Long,
+    val user: User,
     val addonId: Long,
     val storageGi: Int,
 )

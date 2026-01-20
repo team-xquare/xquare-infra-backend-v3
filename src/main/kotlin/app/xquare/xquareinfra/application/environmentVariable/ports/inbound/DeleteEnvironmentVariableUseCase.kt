@@ -1,7 +1,9 @@
 package app.xquare.xquareinfra.application.environmentVariable.ports.inbound
 
+import app.xquare.xquareinfra.domain.user.User
+
 data class DeleteEnvironmentVariableCommand(
-    val userId: Long,
+    val user: User,
     val applicationId: Long,
     val key: String,
 )

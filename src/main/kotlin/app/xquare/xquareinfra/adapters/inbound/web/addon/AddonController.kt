@@ -6,14 +6,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.request.CreateAddo
 import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.request.UpdateAddonRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.response.CreateAddonResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.addon.dtos.response.GetAddonResponseDto
-import app.xquare.xquareinfra.application.addon.ports.inbound.CreateAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.CreateAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.DeleteAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.DeleteAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.GetAddonQuery
-import app.xquare.xquareinfra.application.addon.ports.inbound.GetAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonUseCase
+import app.xquare.xquareinfra.application.addon.ports.inbound.*
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
@@ -21,14 +14,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "Addon")
 @RestController
@@ -47,7 +33,7 @@ class AddonController(
     ): APiWrappedResponseDto<CreateAddonResponseDto> {
         val command =
             CreateAddonCommand(
-                userId = user.id!!,
+                user = user,
                 teamId = request.teamId,
                 name = request.name,
                 type = request.type.toDomain(),
@@ -67,7 +53,7 @@ class AddonController(
     ): APiWrappedResponseDto<GetAddonResponseDto> {
         val query =
             GetAddonQuery(
-                userId = user.id!!,
+                user = user,
                 addonId = addonId,
             )
 
@@ -92,7 +78,7 @@ class AddonController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateAddonCommand(
-                userId = user.id!!,
+                user = user,
                 addonId = addonId,
                 storageGi = request.storageGi,
             )
@@ -109,7 +95,7 @@ class AddonController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteAddonCommand(
-                userId = user.id!!,
+                user = user,
                 addonId = addonId,
             )
 
