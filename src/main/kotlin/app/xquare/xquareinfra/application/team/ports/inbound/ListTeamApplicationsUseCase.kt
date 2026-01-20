@@ -1,9 +1,10 @@
 package app.xquare.xquareinfra.application.team.ports.inbound
 
 import app.xquare.xquareinfra.domain.application.Application
+import app.xquare.xquareinfra.domain.user.User
 
 data class ListTeamApplicationsQuery(
-    val userId: Long,
+    val user: User,
     val teamId: Long,
 )
 

@@ -7,5 +7,5 @@ data class Application(
     val team: Team,
     val name: String,
     val status: ApplicationStatus,
-    val configuration: ApplicationConfiguration,
+    val configuration: ApplicationConfiguration? = null,
 )
