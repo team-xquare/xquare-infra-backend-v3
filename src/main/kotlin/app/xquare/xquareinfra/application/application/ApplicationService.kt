@@ -50,7 +50,7 @@ class ApplicationService(
             applicationPersistencePort.findById(query.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(query.userId)) {
+        if (!application.team.isMember(query.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -71,7 +71,7 @@ class ApplicationService(
             applicationPersistencePort.findById(command.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(command.userId)) {
+        if (!application.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -86,7 +86,7 @@ class ApplicationService(
     }
 
     override fun updateApplicationStatus(command: UpdateApplicationStatusCommand): UpdateApplicationStatusResult {
-        val user = userPersistencePort.findById(command.userId) ?: throw CommonException.UserNotFound
+        val user = userPersistencePort.findById(command.user.id!!) ?: throw CommonException.UserNotFound
         if (user.role != UserRole.ADMIN) {
             throw CommonException.UnAuthorized
         }
@@ -118,7 +118,7 @@ class ApplicationService(
                 configurationPublishPort.publishApplicationConfiguration(
                     application.team.name,
                     application.name,
-                    application.configuration,
+                    application.configuration!!,
                 )
 
                 val updatedApplication = application.copy(status = ApplicationStatus.PUBLISHED)
@@ -138,7 +138,7 @@ class ApplicationService(
             applicationPersistencePort.findById(command.applicationId)
                 ?: throw CommonException.ApplicationNotFound
 
-        if (!application.team.isMember(command.userId)) {
+        if (!application.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 

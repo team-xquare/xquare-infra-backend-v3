@@ -9,16 +9,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.common.toDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.request.CreateApplicationRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.response.CreateApplicationResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.application.dtos.response.GetApplicationResponseDto
-import app.xquare.xquareinfra.application.application.ports.inbound.CreateApplicationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.CreateApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.DeleteApplicationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.DeleteApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.GetApplicationQuery
-import app.xquare.xquareinfra.application.application.ports.inbound.GetApplicationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationConfigurationCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationConfigurationUseCase
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationStatusCommand
-import app.xquare.xquareinfra.application.application.ports.inbound.UpdateApplicationStatusUseCase
+import app.xquare.xquareinfra.application.application.ports.inbound.*
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
@@ -26,14 +17,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "Application")
 @RestController
@@ -70,7 +54,7 @@ class ApplicationController(
     ): APiWrappedResponseDto<GetApplicationResponseDto> {
         val query =
             GetApplicationQuery(
-                userId = user.id!!,
+                user = user,
                 applicationId = applicationId,
             )
         val result = getApplicationUseCase.getApplication(query)
@@ -79,7 +63,7 @@ class ApplicationController(
             teamId = result.application.team.id!!,
             name = result.application.name,
             status = result.application.status.toDto(),
-            configuration = result.application.configuration.toDto(),
+            configuration = result.application.configuration!!.toDto(),
         ).toWrappedDto()
     }
 
@@ -92,7 +76,7 @@ class ApplicationController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateApplicationConfigurationCommand(
-                userId = user.id!!,
+                user = user,
                 applicationId = applicationId,
                 configuration = request.configuration.toDomain(),
             )
@@ -109,7 +93,7 @@ class ApplicationController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateApplicationStatusCommand(
-                userId = user.id!!,
+                user = user,
                 applicationId = applicationId,
                 status = request.status.toDomain(),
             )
@@ -126,7 +110,7 @@ class ApplicationController(
         val command =
             DeleteApplicationCommand(
                 applicationId = applicationId,
-                userId = user.id!!,
+                user = user,
             )
         deleteApplicationUseCase.deleteApplication(command)
         return APiWrappedResponseDto.success()

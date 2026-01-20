@@ -1,9 +1,10 @@
 package app.xquare.xquareinfra.application.addon.ports.inbound
 
 import app.xquare.xquareinfra.domain.addon.Addon
+import app.xquare.xquareinfra.domain.user.User
 
 data class GetAddonQuery(
-    val userId: Long,
+    val user: User,
     val addonId: Long,
 )
 

@@ -1,9 +1,10 @@
 package app.xquare.xquareinfra.application.deployment.ports.inbound
 
 import app.xquare.xquareinfra.domain.deployment.Deployment
+import app.xquare.xquareinfra.domain.user.User
 
 data class ListDeploymentsQuery(
-    val userId: Long,
+    val user: User,
     val applicationId: Long,
     val page: Int,
     val limit: Int,

@@ -1,7 +1,9 @@
 package app.xquare.xquareinfra.application.environmentVariable.ports.inbound
 
+import app.xquare.xquareinfra.domain.user.User
+
 data class ListEnvironmentVariablesQuery(
-    val userId: Long,
+    val user: User,
     val applicationId: Long,
 )
 

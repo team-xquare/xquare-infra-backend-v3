@@ -11,30 +11,8 @@ import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.AddOrUpdate
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.CreateTeamRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.DeleteTeamMembersRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.request.UpdateTeamRequestDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.CreateTeamResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamAddonsResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamApplicationsResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.GetTeamsResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.TeamMemberDto
-import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersCommand
-import app.xquare.xquareinfra.application.team.ports.inbound.AddOrUpdateMembersUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.CreateTeamCommand
-import app.xquare.xquareinfra.application.team.ports.inbound.CreateTeamUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.DeleteMembersCommand
-import app.xquare.xquareinfra.application.team.ports.inbound.DeleteMembersUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamCommand
-import app.xquare.xquareinfra.application.team.ports.inbound.DeleteTeamUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamQuery
-import app.xquare.xquareinfra.application.team.ports.inbound.GetTeamUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsQuery
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamAddonsUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsQuery
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamApplicationsUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsQuery
-import app.xquare.xquareinfra.application.team.ports.inbound.ListTeamsUseCase
-import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamCommand
-import app.xquare.xquareinfra.application.team.ports.inbound.UpdateTeamUseCase
+import app.xquare.xquareinfra.adapters.inbound.web.team.dtos.response.*
+import app.xquare.xquareinfra.application.team.ports.inbound.*
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
@@ -46,21 +24,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Tag(name = "Team")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/v1/teams")
 class TeamController(
-    private val listTeamsUseCase: ListTeamsUseCase,
+    private val listTeamsUseCase: ListUserTeamsUseCase,
     private val getTeamUseCase: GetTeamUseCase,
     private val createTeamUseCase: CreateTeamUseCase,
     private val addOrUpdateMembersUseCase: AddOrUpdateMembersUseCase,
@@ -75,8 +46,8 @@ class TeamController(
     fun listTeams(
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<GetTeamsResponseDto> {
-        val query = ListTeamsQuery(user.id!!)
-        val result = listTeamsUseCase.listTeams(query)
+        val query = ListUserTeamsQuery(user)
+        val result = listTeamsUseCase.listUserTeams(query)
 
         return GetTeamsResponseDto(
             teams =
@@ -104,7 +75,7 @@ class TeamController(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<GetTeamResponseDto> {
-        val query = GetTeamQuery(user.id!!, teamId)
+        val query = GetTeamQuery(user, teamId)
         val result = getTeamUseCase.getTeam(query)
 
         return GetTeamResponseDto(
@@ -124,7 +95,7 @@ class TeamController(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<GetTeamApplicationsResponseDto> {
-        val query = ListTeamApplicationsQuery(user.id!!, teamId)
+        val query = ListTeamApplicationsQuery(user, teamId)
         val result = listTeamApplicationsUseCase.listTeamApplications(query)
 
         return GetTeamApplicationsResponseDto(
@@ -135,7 +106,7 @@ class TeamController(
                         teamId = it.team.id!!,
                         name = it.name,
                         status = it.status.toDto(),
-                        configuration = it.configuration.toDto(),
+                        configuration = it.configuration!!.toDto(),
                     )
                 },
         ).toWrappedDto()
@@ -147,7 +118,7 @@ class TeamController(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<GetTeamAddonsResponseDto> {
-        val query = ListTeamAddonsQuery(user.id!!, teamId)
+        val query = ListTeamAddonsQuery(user, teamId)
         val result = listTeamAddonsUseCase.listTeamAddons(query)
 
         return GetTeamAddonsResponseDto(
@@ -194,7 +165,7 @@ class TeamController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             AddOrUpdateMembersCommand(
-                userId = user.id!!,
+                user = user,
                 teamId = teamId,
                 members =
                     request.members.map {
@@ -215,7 +186,7 @@ class TeamController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             DeleteMembersCommand(
-                userId = user.id!!,
+                user = user,
                 teamId = teamId,
                 memberIds = request.ids,
             )
@@ -233,7 +204,7 @@ class TeamController(
     ): APiWrappedResponseDto<Unit> {
         val command =
             UpdateTeamCommand(
-                userId = user.id!!,
+                user = user,
                 teamId = teamId,
                 type = request.type?.toDomain(),
             )
@@ -248,7 +219,7 @@ class TeamController(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<Unit> {
-        val command = DeleteTeamCommand(user.id!!, teamId)
+        val command = DeleteTeamCommand(user, teamId)
         deleteTeamUseCase.deleteTeam(command)
         return APiWrappedResponseDto.success()
     }

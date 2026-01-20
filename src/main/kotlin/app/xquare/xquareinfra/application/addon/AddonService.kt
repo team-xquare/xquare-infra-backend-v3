@@ -1,17 +1,6 @@
 package app.xquare.xquareinfra.application.addon
 
-import app.xquare.xquareinfra.application.addon.ports.inbound.CreateAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.CreateAddonResult
-import app.xquare.xquareinfra.application.addon.ports.inbound.CreateAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.DeleteAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.DeleteAddonResult
-import app.xquare.xquareinfra.application.addon.ports.inbound.DeleteAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.GetAddonQuery
-import app.xquare.xquareinfra.application.addon.ports.inbound.GetAddonResult
-import app.xquare.xquareinfra.application.addon.ports.inbound.GetAddonUseCase
-import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonCommand
-import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonResult
-import app.xquare.xquareinfra.application.addon.ports.inbound.UpdateAddonUseCase
+import app.xquare.xquareinfra.application.addon.ports.inbound.*
 import app.xquare.xquareinfra.application.addon.ports.outbound.AddonPersistenceForAddonPort
 import app.xquare.xquareinfra.application.addon.ports.outbound.AddonPublishPort
 import app.xquare.xquareinfra.application.addon.ports.outbound.TeamPersistenceForAddonPort
@@ -35,7 +24,7 @@ class AddonService(
             teamPersistencePort.findById(command.teamId)
                 ?: throw CommonException.TeamNotFound
 
-        if (!team.isMember(command.userId)) {
+        if (!team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -63,7 +52,7 @@ class AddonService(
             addonPersistencePort.findById(query.addonId)
                 ?: throw CommonException.AddonNotFound
 
-        if (!addon.team.isMember(query.userId)) {
+        if (!addon.team.isMember(query.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -75,7 +64,7 @@ class AddonService(
             addonPersistencePort.findById(command.addonId)
                 ?: throw CommonException.AddonNotFound
 
-        if (!addon.team.isMember(command.userId)) {
+        if (!addon.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 
@@ -92,7 +81,7 @@ class AddonService(
             addonPersistencePort.findById(command.addonId)
                 ?: throw CommonException.AddonNotFound
 
-        if (!addon.team.isMember(command.userId)) {
+        if (!addon.team.isMember(command.user)) {
             throw CommonException.NotTeamMember
         }
 

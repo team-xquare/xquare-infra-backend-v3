@@ -5,6 +5,8 @@ import app.xquare.xquareinfra.domain.team.Team
 interface TeamPersistenceForTeamPort {
     fun existsByName(name: String): Boolean
 
+    fun listAll(): List<Team>
+
     fun listByUserId(userId: Long): List<Team>
 
     fun findById(teamId: Long): Team?

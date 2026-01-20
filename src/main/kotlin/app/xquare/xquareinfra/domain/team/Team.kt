@@ -1,12 +1,16 @@
 package app.xquare.xquareinfra.domain.team
 
+import app.xquare.xquareinfra.domain.user.User
+import app.xquare.xquareinfra.domain.user.UserRole
+
 data class Team(
     val id: Long? = null,
     val name: String,
     val type: TeamType,
     val members: List<TeamMember>,
 ) {
-    fun isMember(userId: Long): Boolean = members.any { it.user.id == userId }
+    fun isMember(user: User): Boolean = user.role == UserRole.ADMIN || members.any { it.user.id == user.id }
 
-    fun isAdmin(userId: Long): Boolean = members.any { it.user.id == userId && it.role == TeamMemberRole.ADMIN }
+    fun isAdmin(user: User): Boolean = user.role == UserRole.ADMIN ||
+            members.any { it.user.id == user.id && it.role == TeamMemberRole.ADMIN }
 }
