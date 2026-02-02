@@ -7,7 +7,7 @@ data class ApplicationGithubConfigurationDto(
     val repo: String,
     val branch: String,
     val installationId: String,
-    val hash: String,
+    val hash: String?,
     val triggerPaths: List<String>? = null,
 )
 
