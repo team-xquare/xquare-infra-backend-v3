@@ -2,6 +2,8 @@ package app.xquare.xquareinfra.adapters.inbound.web.user
 
 import app.xquare.xquareinfra.adapters.inbound.web.user.dtos.response.SearchUsersResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.user.dtos.response.UserResponseDto
+import app.xquare.xquareinfra.application.user.ports.inbound.GetUserQuery
+import app.xquare.xquareinfra.application.user.ports.inbound.GetUserUseCase
 import app.xquare.xquareinfra.application.user.ports.inbound.SearchUsersQuery
 import app.xquare.xquareinfra.application.user.ports.inbound.SearchUsersUseCase
 import app.xquare.xquareinfra.domain.user.User
@@ -11,10 +13,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
 @Tag(name = "User")
@@ -22,6 +21,8 @@ import org.springframework.web.server.ResponseStatusException
 @RequestMapping("/api/v1/users")
 class UserController(
     val searchUsersUseCase: SearchUsersUseCase,
+    val getUserUseCase: GetUserUseCase,
+    userUseCase: GetUserUseCase,
 ) {
     @Operation(summary = "현재 유저 조회")
     @GetMapping("/me")
@@ -36,6 +37,24 @@ class UserController(
             name = user.name,
             email = user.email,
         ).toWrappedDto()
+
+    @Operation(summary = "유저 조회")
+    @GetMapping("/{userId}")
+    fun getUser(
+        @PathVariable userId: Long,
+    ): APiWrappedResponseDto<UserResponseDto> {
+        val query = GetUserQuery(userId = userId)
+
+        val result = getUserUseCase.getUser(query)
+        return UserResponseDto(
+            id = result.user.id!!,
+            username = result.user.username,
+            role = result.user.role,
+            studentNumber = result.user.studentNumber,
+            name = result.user.name,
+            email = result.user.email,
+        ).toWrappedDto()
+    }
 
     @Operation(summary = "유저 검색")
     @GetMapping("/search")

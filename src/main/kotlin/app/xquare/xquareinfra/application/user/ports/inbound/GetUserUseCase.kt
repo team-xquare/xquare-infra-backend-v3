@@ -6,13 +6,9 @@ data class GetUserQuery(
     val userId: Long,
 )
 
-sealed class GetUserResult {
-    data class Success(
-        val user: User,
-    ) : GetUserResult()
-
-    data object UserNotExists : GetUserResult()
-}
+data class GetUserResult(
+    val user: User,
+)
 
 interface GetUserUseCase {
     fun getUser(query: GetUserQuery): GetUserResult
