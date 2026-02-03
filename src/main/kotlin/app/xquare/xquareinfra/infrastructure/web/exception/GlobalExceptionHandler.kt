@@ -6,6 +6,7 @@ import app.xquare.xquareinfra.adapters.inbound.web.auth.errorCode.AuthExceptionM
 import app.xquare.xquareinfra.adapters.inbound.web.common.errorCode.CommonExceptionMapper
 import app.xquare.xquareinfra.adapters.inbound.web.environmentVariable.errorCode.EnvironmentVariableExceptionMapper
 import app.xquare.xquareinfra.adapters.inbound.web.team.errorCode.TeamExceptionMapper
+import app.xquare.xquareinfra.adapters.inbound.web.user.errorCode.UserExceptionMapper
 import app.xquare.xquareinfra.application.addon.AddonException
 import app.xquare.xquareinfra.application.application.ApplicationException
 import app.xquare.xquareinfra.application.auth.AuthException
@@ -13,6 +14,7 @@ import app.xquare.xquareinfra.application.environmentVariable.EnvironmentVariabl
 import app.xquare.xquareinfra.application.global.exception.CommonException
 import app.xquare.xquareinfra.application.global.exception.UseCaseException
 import app.xquare.xquareinfra.application.team.TeamException
+import app.xquare.xquareinfra.application.team.UserException
 import app.xquare.xquareinfra.infrastructure.web.toWrappedDto
 import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpHeaders
@@ -64,6 +66,7 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
             is ApplicationException -> ApplicationExceptionMapper.toResponseEntity(ex)
             is AddonException -> AddonExceptionMapper.toResponseEntity(ex)
             is EnvironmentVariableException -> EnvironmentVariableExceptionMapper.toResponseEntity(ex)
+            is UserException -> UserExceptionMapper.toResponseEntity(ex)
             else -> throw RuntimeException()
         }
 

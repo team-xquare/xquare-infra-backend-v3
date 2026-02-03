@@ -1,7 +1,6 @@
 package app.xquare.xquareinfra.infrastructure.security.api
 
 import app.xquare.xquareinfra.application.user.ports.inbound.GetUserQuery
-import app.xquare.xquareinfra.application.user.ports.inbound.GetUserResult
 import app.xquare.xquareinfra.application.user.ports.inbound.GetUserUseCase
 import app.xquare.xquareinfra.infrastructure.jwt.JwtProvider
 import jakarta.servlet.FilterChain
@@ -35,11 +34,7 @@ class JwtAuthenticationFilter(
 
             val userId = jwtProvider.extractUserId(token) ?: return
 
-            val user =
-                when (val userResult = getUserUseCase.getUser(GetUserQuery(userId))) {
-                    is GetUserResult.Success -> userResult.user
-                    else -> return
-                }
+            val user = runCatching { getUserUseCase.getUser(GetUserQuery(userId)).user }.getOrNull()
 
             val auth = UsernamePasswordAuthenticationToken(user, null, null)
             SecurityContextHolder.getContext().authentication = auth
