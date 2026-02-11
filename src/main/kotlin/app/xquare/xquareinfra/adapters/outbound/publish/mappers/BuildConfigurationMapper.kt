@@ -48,6 +48,12 @@ fun BuildConfiguration.toGitOps(): GitOpsBuild =
                 buildCommand = buildCommand!!,
                 startCommand = startCommand!!,
             )
+        BuildConfigurationType.NEXT_JS_EXPORT ->
+            GitOpsBuild.NextjsExport(
+                nodeVersion = version!!,
+                buildCommand = buildCommand!!,
+                distPath = outputPath!!,
+            )
         BuildConfigurationType.GO ->
             GitOpsBuild.Go(
                 goVersion = version!!,
@@ -129,6 +135,13 @@ fun GitOpsBuild.toDomain(): BuildConfiguration =
                 version = nodeVersion,
                 buildCommand = buildCommand,
                 startCommand = startCommand,
+            )
+        is GitOpsBuild.NextjsExport ->
+            BuildConfiguration(
+                type = BuildConfigurationType.NEXT_JS_EXPORT,
+                version = nodeVersion,
+                buildCommand = buildCommand,
+                outputPath = distPath,
             )
         is GitOpsBuild.Go ->
             BuildConfiguration(
