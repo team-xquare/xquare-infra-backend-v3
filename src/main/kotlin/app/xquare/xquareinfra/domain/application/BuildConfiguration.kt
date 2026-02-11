@@ -56,6 +56,13 @@ enum class BuildConfigurationType(
             BuildConfigurationField.START_COMMAND,
         ),
     ),
+    NEXT_JS_EXPORT(
+        EnumSet.of(
+            BuildConfigurationField.VERSION,
+            BuildConfigurationField.BUILD_COMMAND,
+            BuildConfigurationField.OUTPUT_PATH,
+        )
+    ),
     GO(
         EnumSet.of(
             BuildConfigurationField.VERSION,

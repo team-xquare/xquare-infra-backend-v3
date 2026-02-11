@@ -12,6 +12,7 @@ enum class BuildConfigurationTypeDto(
     VITE("vite"),
     VUE("vue"),
     NEXT_JS("next_js"),
+    NEXT_JS_EXPORT("next_js_export"),
     GO("go"),
     RUST("rust"),
     MAVEN("maven"),
@@ -28,6 +29,7 @@ fun BuildConfigurationTypeDto.toDomain(): BuildConfigurationType =
         BuildConfigurationTypeDto.VITE -> BuildConfigurationType.VITE
         BuildConfigurationTypeDto.VUE -> BuildConfigurationType.VUE
         BuildConfigurationTypeDto.NEXT_JS -> BuildConfigurationType.NEXT_JS
+        BuildConfigurationTypeDto.NEXT_JS_EXPORT -> BuildConfigurationType.NEXT_JS_EXPORT
         BuildConfigurationTypeDto.GO -> BuildConfigurationType.GO
         BuildConfigurationTypeDto.RUST -> BuildConfigurationType.RUST
         BuildConfigurationTypeDto.MAVEN -> BuildConfigurationType.MAVEN
@@ -44,6 +46,7 @@ fun BuildConfigurationType.toDto(): BuildConfigurationTypeDto =
         BuildConfigurationType.VITE -> BuildConfigurationTypeDto.VITE
         BuildConfigurationType.VUE -> BuildConfigurationTypeDto.VUE
         BuildConfigurationType.NEXT_JS -> BuildConfigurationTypeDto.NEXT_JS
+        BuildConfigurationType.NEXT_JS_EXPORT -> BuildConfigurationTypeDto.NEXT_JS_EXPORT
         BuildConfigurationType.GO -> BuildConfigurationTypeDto.GO
         BuildConfigurationType.RUST -> BuildConfigurationTypeDto.RUST
         BuildConfigurationType.MAVEN -> BuildConfigurationTypeDto.MAVEN

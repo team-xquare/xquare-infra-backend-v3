@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
     JsonSubTypes.Type(value = GitOpsBuild.Vite::class, name = "vite"),
     JsonSubTypes.Type(value = GitOpsBuild.Vue::class, name = "vue"),
     JsonSubTypes.Type(value = GitOpsBuild.Nextjs::class, name = "nextjs"),
+    JsonSubTypes.Type(value = GitOpsBuild.NextjsExport::class, name = "nextjs-export"),
     JsonSubTypes.Type(value = GitOpsBuild.Go::class, name = "go"),
     JsonSubTypes.Type(value = GitOpsBuild.Rust::class, name = "rust"),
     JsonSubTypes.Type(value = GitOpsBuild.Django::class, name = "django"),
@@ -67,6 +68,13 @@ sealed class GitOpsBuild {
         val nodeVersion: String,
         val buildCommand: String,
         val startCommand: String,
+    ) : GitOpsBuild()
+
+    @JsonTypeName("nextjs-export")
+    data class NextjsExport(
+        val nodeVersion: String,
+        val buildCommand: String,
+        val distPath: String,
     ) : GitOpsBuild()
 
     @JsonTypeName("go")
