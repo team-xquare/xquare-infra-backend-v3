@@ -54,9 +54,9 @@ class TeamService(
 
         val membersToAdd =
             (
-                    command.initialMembers.filterNot { it.memberId != command.userId } +
-                            CreateTeamCommand.InitialMember(memberId = command.userId, role = TeamMemberRole.ADMIN)
-                    ).distinctBy { it.memberId }
+                command.initialMembers.filterNot { it.memberId != command.userId } +
+                    CreateTeamCommand.InitialMember(memberId = command.userId, role = TeamMemberRole.ADMIN)
+            ).distinctBy { it.memberId }
                 .map {
                     val user = userPersistencePort.findById(it.memberId) ?: throw CommonException.UserNotFound
                     TeamMember(user = user, role = it.role)

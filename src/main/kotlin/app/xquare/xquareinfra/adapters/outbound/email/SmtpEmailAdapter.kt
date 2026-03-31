@@ -9,12 +9,17 @@ import org.springframework.stereotype.Component
 class SmtpEmailAdapter(
     private val mailSender: JavaMailSender,
 ) : EmailSendPort {
-    override fun send(to: String, subject: String, body: String) {
-        val message = SimpleMailMessage().apply {
-            setTo(to)
-            setSubject(subject)
-            setText(body)
-        }
+    override fun send(
+        to: String,
+        subject: String,
+        body: String,
+    ) {
+        val message =
+            SimpleMailMessage().apply {
+                setTo(to)
+                setSubject(subject)
+                setText(body)
+            }
         mailSender.send(message)
     }
 }

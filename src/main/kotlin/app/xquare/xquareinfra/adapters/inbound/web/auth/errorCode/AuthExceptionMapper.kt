@@ -24,7 +24,5 @@ object AuthExceptionMapper {
 
             is AuthException.EmailNotVerified ->
                 ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_NOT_VERIFIED.toWrappedDto())
-
-
         }
 }

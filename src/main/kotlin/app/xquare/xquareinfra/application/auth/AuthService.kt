@@ -34,7 +34,7 @@ class AuthService(
     private val refreshTokenPort: RefreshTokenPort,
     private val passwordEncoderPort: PasswordEncoderPort,
     private val emailSendPort: EmailSendPort,
-    private val emailOtpPort: EmailOtpPort
+    private val emailOtpPort: EmailOtpPort,
 ) : RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
@@ -77,8 +77,9 @@ class AuthService(
     }
 
     override fun verifyOtp(commend: VerifyEmailOtpCommand): VerifyEmailOtpResult {
-        val savedOtp = emailOtpPort.getOtp(commend.email)
-            ?: throw AuthException.OtpNotFound
+        val savedOtp =
+            emailOtpPort.getOtp(commend.email)
+                ?: throw AuthException.OtpNotFound
 
         if (savedOtp != commend.otp) {
             throw AuthException.OtpMismatch

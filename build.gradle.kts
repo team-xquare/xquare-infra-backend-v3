@@ -52,12 +52,11 @@ dependencies {
 
     testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
 
+// mail
+    implementation(Dependencies.SpringBoot.MAIL)
 
-    //mail
-    implementation("org.springframework.boot:spring-boot-starter-mail")
-
-    //redis
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+// redis
+    implementation(Dependencies.SpringBoot.DATA_REDIS)
 }
 
 kotlin {

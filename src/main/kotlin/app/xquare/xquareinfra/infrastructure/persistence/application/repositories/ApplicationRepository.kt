@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ApplicationRepository : JpaRepository<ApplicationPersistenceEntity, Long> {
-    fun existsByTeamIdAndName(teamId: Long, name: String): Boolean
+    fun existsByTeamIdAndName(
+        teamId: Long,
+        name: String,
+    ): Boolean
 
     fun findAllByTeamId(teamId: Long): List<ApplicationPersistenceEntity>
 

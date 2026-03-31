@@ -4,4 +4,6 @@ interface SendEmailOtpUseCase {
     fun sendOtp(command: SendEmailOtpCommand)
 }
 
-data class SendEmailOtpCommand(val email: String)
+data class SendEmailOtpCommand(
+    val email: String,
+)
