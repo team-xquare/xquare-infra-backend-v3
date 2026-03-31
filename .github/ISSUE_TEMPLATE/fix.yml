@@ -1,0 +1,25 @@
+name: fix
+description: 발생한 오류의 이슈를 생성하세요.👾
+labels: ["버그"]
+body:
+  - type: textarea
+    id: explanation
+    attributes:
+      label: 발생한 오류
+      description: 발생한 오류의 설명을 적어주세요! (ex. - api 작동 X...)
+      placeholder: |
+        - 오류 설명 1
+        - 오류 설명 2
+        - 오류 설명 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: 체크리스트
+      description: 체크할 체크리스트를 적어주세요. 마크다운 체크박스(- [ ] 내용)형식으로 작성하면 제출 후 체크박스로 표시됩니다.
+      placeholder: |
+        - [ ] 할 일 1
+        - [ ] 할 일 2
+        - [ ] 할 일 3
