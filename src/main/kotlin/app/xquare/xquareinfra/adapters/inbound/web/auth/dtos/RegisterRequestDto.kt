@@ -22,4 +22,6 @@ data class RegisterRequestDto(
     val name: String,
     @field:Email
     val email: String,
+    @field:NotBlank
+    val emailVerifiedToken: String,
 )

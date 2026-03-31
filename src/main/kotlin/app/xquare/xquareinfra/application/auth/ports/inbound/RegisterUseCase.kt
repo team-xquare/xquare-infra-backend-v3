@@ -6,6 +6,7 @@ data class RegisterCommand(
     val studentNumber: Int,
     val name: String,
     val email: String,
+    val emailVerifiedToken: String,
 )
 
 data class RegisterResult(
