@@ -1,5 +1,5 @@
 name: setting
-description: 변경되는 프로젝트 설정의 이슈를 기록하세요.⚙️
+description: 변경되는 프로젝트 설정의 이슈를 기록하세요.
 labels: ["프로젝트 설정"]
 body:
   - type: textarea

@@ -1,5 +1,5 @@
 name: DOCS
-description: 작성할 문서의 이슈를 기록하세요. 📜
+description: 작성할 문서의 이슈를 기록하세요.
 labels: ["DOCS"]
 body:
   - type: textarea

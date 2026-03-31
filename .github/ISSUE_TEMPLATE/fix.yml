@@ -1,5 +1,5 @@
 name: fix
-description: 발생한 오류의 이슈를 생성하세요.👾
+description: 발생한 오류의 이슈를 생성하세요.
 labels: ["버그"]
 body:
   - type: textarea

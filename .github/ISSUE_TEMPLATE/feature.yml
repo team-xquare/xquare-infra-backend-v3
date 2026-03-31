@@ -1,5 +1,5 @@
 name: feature
-description: 만들 기능의 이슈를 생성하세요.✏️
+description: 만들 기능의 이슈를 생성하세요.
 labels: ["기능 추가"]
 body:
   - type: textarea

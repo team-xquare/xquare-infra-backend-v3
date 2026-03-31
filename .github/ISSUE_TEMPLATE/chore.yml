@@ -1,5 +1,5 @@
 name: chore
-description: 변경할 잡다한 사항의 이슈를 기록하세요.💡
+description: 변경할 잡다한 사항의 이슈를 기록하세요.
 labels: ["chore"]
 body:
   - type: textarea
