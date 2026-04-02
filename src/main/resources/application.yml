@@ -8,6 +8,18 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRY:604800000} # 7 days
 
 spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML
+    cache: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
   application:
     name: xquare-infra-v3
   web:
@@ -30,6 +42,16 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
 
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}

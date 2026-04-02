@@ -11,6 +11,7 @@ data class Team(
 ) {
     fun isMember(user: User): Boolean = user.role == UserRole.ADMIN || members.any { it.user.id == user.id }
 
-    fun isAdmin(user: User): Boolean = user.role == UserRole.ADMIN ||
+    fun isAdmin(user: User): Boolean =
+        user.role == UserRole.ADMIN ||
             members.any { it.user.id == user.id && it.role == TeamMemberRole.ADMIN }
 }

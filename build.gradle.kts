@@ -28,6 +28,9 @@ dependencies {
     implementation(Dependencies.SpringBoot.VALIDATION)
     implementation(Dependencies.SpringBoot.WEBFLUX)
     testImplementation(Dependencies.SpringBoot.TEST)
+    implementation(Dependencies.SpringBoot.DATA_REDIS)
+    implementation(Dependencies.SpringBoot.MAIL)
+    implementation(Dependencies.SpringBoot.THYMELEAF)
 
     implementation(Dependencies.SpringCloud.FEIGN)
     implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
@@ -49,6 +52,10 @@ dependencies {
     runtimeOnly(Dependencies.JWT.JACKSON)
 
     testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
+
+    implementation(Dependencies.SpringBoot.MAIL)
+
+    implementation(Dependencies.SpringBoot.DATA_REDIS)
 }
 
 kotlin {

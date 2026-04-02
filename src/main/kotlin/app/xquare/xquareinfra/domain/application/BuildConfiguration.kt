@@ -61,7 +61,7 @@ enum class BuildConfigurationType(
             BuildConfigurationField.VERSION,
             BuildConfigurationField.BUILD_COMMAND,
             BuildConfigurationField.OUTPUT_PATH,
-        )
+        ),
     ),
     GO(
         EnumSet.of(

@@ -7,6 +7,9 @@ object Dependencies {
         const val VALIDATION = "org.springframework.boot:spring-boot-starter-validation:$VERSION"
         const val WEBFLUX = "org.springframework.boot:spring-boot-starter-webflux:$VERSION"
         const val TEST = "org.springframework.boot:spring-boot-starter-test:$VERSION"
+        const val DATA_REDIS = "org.springframework.boot:spring-boot-starter-data-redis:$VERSION"
+        const val MAIL = "org.springframework.boot:spring-boot-starter-mail:$VERSION"
+        const val THYMELEAF = "org.springframework.boot:spring-boot-starter-thymeleaf:$VERSION"
     }
 
     object SpringCloud {

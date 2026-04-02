@@ -15,5 +15,14 @@ object AuthExceptionMapper {
 
             is AuthException.InvalidRefreshToken ->
                 ResponseEntity.badRequest().body(AuthErrorCode.INVALID_REFRESH_TOKEN.toWrappedDto())
+
+            is AuthException.OtpNotFound ->
+                ResponseEntity.badRequest().body(AuthErrorCode.OTP_NOT_FOUND.toWrappedDto())
+
+            is AuthException.OtpMismatch ->
+                ResponseEntity.badRequest().body(AuthErrorCode.OTP_MISMATCH.toWrappedDto())
+
+            is AuthException.EmailNotVerified ->
+                ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_NOT_VERIFIED.toWrappedDto())
         }
 }

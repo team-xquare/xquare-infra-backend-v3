@@ -18,7 +18,10 @@ class ApplicationPersistenceAdapter(
     ApplicationPersistenceForTeamPort,
     ApplicationPersistenceForEnvironmentVariablePort,
     ApplicationPersistenceForDeploymentPort {
-    override fun existsByTeamIdAndName(teamId: Long, name: String): Boolean = applicationRepository.existsByTeamIdAndName(teamId, name)
+    override fun existsByTeamIdAndName(
+        teamId: Long,
+        name: String,
+    ): Boolean = applicationRepository.existsByTeamIdAndName(teamId, name)
 
     override fun findById(applicationId: Long): Application? = applicationRepository.findById(applicationId).getOrNull()?.toDomain()
 
