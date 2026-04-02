@@ -10,8 +10,8 @@ jwt:
 spring:
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   application:
     name: xquare-infra-v3
@@ -43,7 +43,8 @@ spring:
     password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
-      mail.smtp.starttls.enable: ture
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
 
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}

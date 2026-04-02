@@ -143,7 +143,7 @@ class AuthService(
 
         emailOtpPort.deleteOtp(commend.email)
 
-        val verifiedToken = UUID.randomUUID().toString()
+        val verifiedToken = (100000..999999).random().toString()
         emailOtpPort.saveVerifiedToken(verifiedToken, commend.email, ttlSeconds = 600)
 
         return VerifyEmailOtpResult(emailVerifiedToken = verifiedToken)
