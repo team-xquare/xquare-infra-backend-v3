@@ -9,7 +9,7 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterUseCase
-import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommend
 import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpResult
@@ -72,7 +72,7 @@ class AuthService(
         return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }
 
-    override fun sendOtp(command: SendEmailOtpCommand) {
+    override fun sendOtp(command: SendEmailOtpCommend) {
         val otp = (100000..999999).random().toString()
         emailOtpPort.saveOtp(command.email, otp, ttlSeconds = 300)
 

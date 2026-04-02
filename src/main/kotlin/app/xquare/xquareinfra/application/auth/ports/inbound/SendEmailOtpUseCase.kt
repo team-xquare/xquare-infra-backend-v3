@@ -1,9 +1,9 @@
 package app.xquare.xquareinfra.application.auth.ports.inbound
 
 interface SendEmailOtpUseCase {
-    fun sendOtp(command: SendEmailOtpCommand)
+    fun sendOtp(command: SendEmailOtpCommend)
 }
 
-data class SendEmailOtpCommand(
+data class SendEmailOtpCommend(
     val email: String,
 )

@@ -53,10 +53,8 @@ dependencies {
 
     testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
 
-// mail
     implementation(Dependencies.SpringBoot.MAIL)
 
-// redis
     implementation(Dependencies.SpringBoot.DATA_REDIS)
 }
 
