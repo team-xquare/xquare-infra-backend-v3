@@ -8,6 +8,13 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRY:604800000} # 7 days
 
 spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML
+    cache: false
+
   data:
     redis:
       host: ${REDIS_HOST}
