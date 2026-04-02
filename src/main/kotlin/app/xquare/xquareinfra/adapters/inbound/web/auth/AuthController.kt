@@ -13,7 +13,7 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterUseCase
-import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommend
 import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpUseCase
@@ -44,7 +44,7 @@ class AuthController(
     fun sendEmailOtp(
         @RequestBody @Valid request: SendOtpRequestDto,
     ): APiWrappedResponseDto<Unit> {
-        sendEmailOtpUseCase.sendOtp(SendEmailOtpCommand(email = request.email))
+        sendEmailOtpUseCase.sendOtp(SendEmailOtpCommend(email = request.email))
 
         return APiWrappedResponseDto.success()
     }
