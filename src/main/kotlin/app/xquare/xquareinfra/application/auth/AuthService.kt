@@ -9,7 +9,7 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.RefreshTokenUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterUseCase
-import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommend
+import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpResult
@@ -72,7 +72,7 @@ class AuthService(
         return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }
 
-    override fun sendOtp(command: SendEmailOtpCommend) {
+    override fun sendOtp(command: SendEmailOtpCommand) {
         val otp = (100000..999999).random().toString()
         emailOtpPort.saveOtp(command.email, otp, ttlSeconds = 300)
 
@@ -89,18 +89,18 @@ class AuthService(
         )
     }
 
-    override fun verifyOtp(commend: VerifyEmailOtpCommand): VerifyEmailOtpResult {
-        val savedOtp = emailOtpPort.getOtp(commend.email)
+    override fun verifyOtp(command: VerifyEmailOtpCommand): VerifyEmailOtpResult {
+        val savedOtp = emailOtpPort.getOtp(command.email)
             ?: throw AuthException.OtpNotFound
 
-        if (savedOtp != commend.otp) {
+        if (savedOtp != command.otp) {
             throw AuthException.OtpMismatch
         }
 
-        emailOtpPort.deleteOtp(commend.email)
+        emailOtpPort.deleteOtp(command.email)
 
         val verifiedToken = (100000..999999).random().toString()
-        emailOtpPort.saveVerifiedToken(verifiedToken, commend.email, ttlSeconds = 600)
+        emailOtpPort.saveVerifiedToken(verifiedToken, command.email, ttlSeconds = 600)
 
         return VerifyEmailOtpResult(emailVerifiedToken = verifiedToken)
     }
