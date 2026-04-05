@@ -31,6 +31,7 @@ dependencies {
     implementation(Dependencies.SpringBoot.DATA_REDIS)
     implementation(Dependencies.SpringBoot.MAIL)
     implementation(Dependencies.SpringBoot.THYMELEAF)
+    implementation(Dependencies.Kotlin.COROUTINES)
 
     implementation(Dependencies.SpringCloud.FEIGN)
     implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
