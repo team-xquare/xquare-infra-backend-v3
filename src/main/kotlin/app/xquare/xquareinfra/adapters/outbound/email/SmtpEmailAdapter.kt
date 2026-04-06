@@ -38,16 +38,8 @@ class SmtpEmailAdapter(
         templateName: String,
         variables: Map<String, Any>,
     ) {
-        applicationCoroutineScope.launch {
-            val context = Context().apply { setVariables(variables) }
-            val htmlBody = templateEngine.process(templateName, context)
-            val message = mailSender.createMimeMessage()
-            MimeMessageHelper(message, true, "UTF-8").apply {
-                setTo(to)
-                setSubject(subject)
-                setText(htmlBody, true)
-            }
-            mailSender.send(message)
-        }
+        val context =Context().apply {setVariables(variables)}
+        val htmlBody = templateEngine.process(templateName, context)
+        send(to, subject, htmlBody)
     }
 }
