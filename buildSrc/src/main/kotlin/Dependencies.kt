@@ -27,10 +27,12 @@ object Dependencies {
     object Kotlin {
         private const val VERSION = "1.9.25"
         private const val JACKSON_VERSION = "2.19.2"
+        private const val COROUTINE_VERSION = "1.10.2"
         const val REFLECT = "org.jetbrains.kotlin:kotlin-reflect:$VERSION"
         const val JACKSON = "com.fasterxml.jackson.module:jackson-module-kotlin:$JACKSON_VERSION"
         const val JACKSON_DATAFORMAT_YAML = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$JACKSON_VERSION"
         const val TEST_JUNIT5 = "org.jetbrains.kotlin:kotlin-test-junit5:$VERSION"
+        const val COROUTINES = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$COROUTINE_VERSION"
     }
 
     object Database {
