@@ -1,0 +1,26 @@
+name: Send notifications on PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+    branches:
+      - main
+      - develop
+
+jobs:
+  send-discord-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_BE }}
+        uses: Ilshidur/action-discord@ad5235de713df3ef38022185499b02ffe93b7efe
+        with:
+          args: |-
+            <@&1493077850050527302>
+            `[${{ github.event.pull_request.base.ref }} <- ${{ github.event.pull_request.head.ref }}]` PR이 생성되었습니다.
+            `[생성자 : ${{ github.event.pull_request.user.login }}]`
+            
+            ${{ github.event.pull_request.html_url }}
