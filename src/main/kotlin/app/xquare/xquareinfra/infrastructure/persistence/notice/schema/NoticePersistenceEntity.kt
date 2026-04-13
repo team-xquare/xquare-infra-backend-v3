@@ -29,4 +29,6 @@ data class NoticePersistenceEntity(
     val createdAt: LocalDateTime,
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime,
+    @Column(name = "file_url", nullable = true)
+    val fileUrl: String? = null,
 )
