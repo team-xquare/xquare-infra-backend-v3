@@ -58,6 +58,8 @@ dependencies {
     implementation(Dependencies.SpringBoot.MAIL)
 
     implementation(Dependencies.SpringBoot.DATA_REDIS)
+
+    implementation(Dependencies.AWS.S3)
 }
 
 kotlin {
