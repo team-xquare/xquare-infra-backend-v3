@@ -1,0 +1,25 @@
+name: performance
+description: 성능 개선할 사항의 이슈를 기록하세요.
+labels: ["기능 개선"]
+body:
+  - type: textarea
+    id: explanation
+    attributes:
+      label: 변경 사항
+      description: 변경 사항의 설명을 적어주세요! (ex. - application 조회 성능 개선...)
+      placeholder: |
+        - 변경 설명 1
+        - 변경 설명 2
+        - 변경 설명 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: 체크리스트
+      description: 체크할 체크리스트를 적어주세요. 마크다운 체크박스(- [ ] 내용)형식으로 작성하면 제출 후 체크박스로 표시됩니다.
+      placeholder: |
+        - [ ] 할 일 1
+        - [ ] 할 일 2
+        - [ ] 할 일 3
