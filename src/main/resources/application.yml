@@ -53,6 +53,12 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+
+
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}
   cache-size-mb: ${OKHTTP_CACHE_SIZE_MB}
