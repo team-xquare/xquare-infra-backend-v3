@@ -12,6 +12,9 @@ import app.xquare.xquareinfra.domain.application.ApplicationStatus
 import app.xquare.xquareinfra.domain.team.Team
 import app.xquare.xquareinfra.domain.team.TeamMember
 import app.xquare.xquareinfra.domain.team.TeamMemberRole
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -73,26 +76,30 @@ class TeamService(
         return CreateTeamResult(teamId = savedTeam.id!!)
     }
 
-    override fun listTeamApplications(query: ListTeamApplicationsQuery): ListTeamApplicationsResult {
+    override suspend fun listTeamApplications(query: ListTeamApplicationsQuery): ListTeamApplicationsResult {
         val team = teamPersistencePort.findById(query.teamId) ?: throw CommonException.TeamNotFound
 
         if (!team.isMember(query.user)) {
             throw CommonException.NotTeamMember
         }
 
-        val applications =
-            applicationPersistencePort.listByTeamId(query.teamId).map lit@{ application ->
-                if (application.status != ApplicationStatus.PUBLISHED) {
-                    return@lit application
+        val applications = coroutineScope {
+            applicationPersistencePort.listByTeamId(query.teamId).map { application ->
+                async {
+                    if (application.status != ApplicationStatus.PUBLISHED) {
+                        return@async application
+                    }
+
+                    val configuration =
+                        applicationConfigurationPublishPort
+                            .getPublishedConfiguration(team.name, application.name)
+                            ?: throw ApplicationException.FailedToFetchConfiguration
+
+                    application.copy(configuration = configuration)
                 }
-
-                val configuration =
-                    applicationConfigurationPublishPort
-                        .getPublishedConfiguration(application.team.name, application.name)
-                        ?: throw ApplicationException.FailedToFetchConfiguration
-
-                return@lit application.copy(configuration = configuration)
             }
+            .awaitAll()
+        }
 
         return ListTeamApplicationsResult(applications)
     }

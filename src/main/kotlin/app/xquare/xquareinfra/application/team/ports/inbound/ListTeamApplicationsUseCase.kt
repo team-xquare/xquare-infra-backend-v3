@@ -13,5 +13,5 @@ data class ListTeamApplicationsResult(
 )
 
 interface ListTeamApplicationsUseCase {
-    fun listTeamApplications(query: ListTeamApplicationsQuery): ListTeamApplicationsResult
+    suspend fun listTeamApplications(query: ListTeamApplicationsQuery): ListTeamApplicationsResult
 }

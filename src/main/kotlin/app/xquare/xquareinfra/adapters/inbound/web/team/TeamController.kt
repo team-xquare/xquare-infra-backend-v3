@@ -84,7 +84,7 @@ class TeamController(
 
     @Operation(summary = "팀의 모든 애플리케이션 조회")
     @GetMapping("/{teamId}/applications")
-    fun getTeamApplications(
+    suspend fun getTeamApplications(
         @PathVariable teamId: Long,
         @AuthenticationPrincipal user: User,
     ): APiWrappedResponseDto<GetTeamApplicationsResponseDto> {
