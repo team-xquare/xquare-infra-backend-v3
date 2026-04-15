@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetUrlRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import java.util.UUID
 
@@ -16,7 +17,11 @@ class S3FileUploadAdapter(
     @Value("\${s3.region}") private val region: String,
 ) : FileUploadPort {
     override fun upload(file: MultipartFile): String {
-        val key = "notice/${UUID.randomUUID()}-${file.originalFilename}"
+        val safeName = (file.originalFilename ?: "file")
+            .substringAfterLast('/')
+            .substringAfterLast('\\')
+            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val key = "notice/${UUID.randomUUID()}-$safeName"
 
         val request = PutObjectRequest.builder()
             .bucket(bucket)
@@ -24,8 +29,12 @@ class S3FileUploadAdapter(
             .contentType(file.contentType)
             .build()
 
-        s3Client.putObject(request, RequestBody.fromBytes(file.bytes))
+        file.inputStream.use { input ->
+            s3Client.putObject(request, RequestBody.fromInputStream(input, file.size))
+        }
 
-        return "https://$bucket.s3.$region.amazonaws.com/$key"
+        return s3Client.utilities()
+            .getUrl(GetUrlRequest.builder().bucket(bucket).key(key).build())
+            .toExternalForm()
     }
 }
