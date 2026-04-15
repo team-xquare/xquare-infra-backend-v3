@@ -58,6 +58,7 @@ dependencies {
 
     implementation(Dependencies.SpringBoot.DATA_REDIS)
 
+    implementation(platform(Dependencies.AWS.BOM))
     implementation(Dependencies.AWS.S3)
 }
 
