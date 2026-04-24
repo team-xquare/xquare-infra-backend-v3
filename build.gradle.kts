@@ -31,7 +31,6 @@ dependencies {
     implementation(Dependencies.SpringBoot.DATA_REDIS)
     implementation(Dependencies.SpringBoot.MAIL)
     implementation(Dependencies.SpringBoot.THYMELEAF)
-    implementation(Dependencies.Kotlin.COROUTINES)
 
     implementation(Dependencies.SpringCloud.FEIGN)
     implementation(Dependencies.SpringCloud.FEIGN_OKHTTP)
@@ -41,6 +40,8 @@ dependencies {
     implementation(Dependencies.Kotlin.JACKSON)
     implementation(Dependencies.Kotlin.JACKSON_DATAFORMAT_YAML)
     implementation(Dependencies.Kotlin.REFLECT)
+    implementation(Dependencies.Kotlin.COROUTINES)
+    implementation(Dependencies.Kotlin.COROUTINES_REACTOR)
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
 
     runtimeOnly(Dependencies.Database.MYSQL_CONNECTOR)
