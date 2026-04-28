@@ -10,6 +10,12 @@ object AuthExceptionMapper {
             is AuthException.UsernameAlreadyExists ->
                 ResponseEntity.badRequest().body(AuthErrorCode.USERNAME_ALREADY_EXISTS.toWrappedDto())
 
+            is AuthException.EmailAlreadyExists ->
+                ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_ALREADY_EXISTS.toWrappedDto())
+
+            is AuthException.InvalidUserInfo ->
+                ResponseEntity.badRequest().body(AuthErrorCode.INVALID_USER_INFO.toWrappedDto())
+
             is AuthException.InvalidCredentials ->
                 ResponseEntity.badRequest().body(AuthErrorCode.INVALID_CREDENTIALS.toWrappedDto())
 
