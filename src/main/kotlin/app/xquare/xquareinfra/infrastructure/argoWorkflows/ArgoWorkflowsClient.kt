@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(
     name = "argoWorkflowsClient",
-    url = "\${argo_workflows.url}",
+    url = "\${argo-workflows.url}",
 )
 interface ArgoWorkflowsClient {
     @GetMapping("/api/v1/workflows/{namespace}")
