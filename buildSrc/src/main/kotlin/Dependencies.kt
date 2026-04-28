@@ -38,6 +38,7 @@ object Dependencies {
     object Database {
         private const val MYSQL_CONNECTOR_VERSION = "9.5.0"
         const val MYSQL_CONNECTOR = "com.mysql:mysql-connector-j:$MYSQL_CONNECTOR_VERSION"
+        const val H2 = "com.h2database:h2"
     }
 
     object JWT {
@@ -45,11 +46,6 @@ object Dependencies {
         const val API = "io.jsonwebtoken:jjwt-api:$VERSION"
         const val IMPL = "io.jsonwebtoken:jjwt-impl:$VERSION"
         const val JACKSON = "io.jsonwebtoken:jjwt-jackson:$VERSION"
-    }
-
-    object Test {
-        private const val JUNIT_PLATFORM_LAUNCHER_VERSION = "6.0.1"
-        const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher:$JUNIT_PLATFORM_LAUNCHER_VERSION"
     }
 
     object HTTPClient {

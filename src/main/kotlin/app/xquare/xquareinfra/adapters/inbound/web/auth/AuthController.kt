@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Auth")
-@SecurityRequirements // 글로벌 bearerAuth 설정 제거
+@SecurityRequirements
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
@@ -58,6 +58,7 @@ class AuthController(
             verifyEmailOtpUseCase.verifyOtp(
                 VerifyEmailOtpCommand(email = request.email, otp = request.otp),
             )
+
         return EmailVerifiedTokenResponseDto(result.emailVerifiedToken).toWrappedDto()
     }
 

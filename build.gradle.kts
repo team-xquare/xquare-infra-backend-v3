@@ -42,6 +42,7 @@ dependencies {
     implementation(Dependencies.Kotlin.JACKSON_DATAFORMAT_YAML)
     implementation(Dependencies.Kotlin.REFLECT)
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
+    testRuntimeOnly(Dependencies.Database.H2)
 
     runtimeOnly(Dependencies.Database.MYSQL_CONNECTOR)
 
@@ -51,8 +52,6 @@ dependencies {
     implementation(Dependencies.JWT.API)
     runtimeOnly(Dependencies.JWT.IMPL)
     runtimeOnly(Dependencies.JWT.JACKSON)
-
-    testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
 
     implementation(Dependencies.SpringBoot.MAIL)
 

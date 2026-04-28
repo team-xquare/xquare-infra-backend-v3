@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.application.auth.ports.outbound
+package app.xquare.xquareinfra.application.emailOtp.ports.outbound
 
 interface EmailSendPort {
     fun send(

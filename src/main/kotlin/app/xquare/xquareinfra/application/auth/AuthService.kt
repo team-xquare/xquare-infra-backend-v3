@@ -15,16 +15,15 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpComma
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.outbound.AccessTokenPort
-import app.xquare.xquareinfra.application.auth.ports.outbound.EmailOtpPort
-import app.xquare.xquareinfra.application.auth.ports.outbound.EmailSendPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.RefreshTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
+import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
+import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Year
 
 @Transactional
 @Service
@@ -33,20 +32,23 @@ class AuthService(
     private val accessTokenPort: AccessTokenPort,
     private val refreshTokenPort: RefreshTokenPort,
     private val passwordEncoderPort: PasswordEncoderPort,
-    private val emailSendPort: EmailSendPort,
-    private val emailOtpPort: EmailOtpPort,
+    private val emailOtpService: EmailOtpService,
 ) : RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
     SendEmailOtpUseCase,
     VerifyEmailOtpUseCase {
-
     override fun register(command: RegisterCommand): RegisterResult {
-        val verifiedEmail = emailOtpPort.getEmailByVerifiedToken(command.emailVerifiedToken)
-            ?: throw AuthException.EmailNotVerified
+        val verifiedEmail =
+            emailOtpService.getVerifiedEmail(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
+                ?: throw AuthException.EmailNotVerified
 
         if (verifiedEmail != command.email) {
             throw AuthException.EmailNotVerified
+        }
+
+        if (userPersistencePort.existsByEmail(command.email)) {
+            throw AuthException.EmailAlreadyExists
         }
 
         if (userPersistencePort.existsByUsername(command.username)) {
@@ -64,7 +66,7 @@ class AuthService(
         )
 
         val savedUser = userPersistencePort.save(user)
-        emailOtpPort.deleteVerifiedToken(command.emailVerifiedToken)
+        emailOtpService.deleteVerifiedToken(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
 
         val accessToken = accessTokenPort.create(savedUser.id!!)
         val refreshToken = refreshTokenPort.create(savedUser.id)
@@ -72,35 +74,15 @@ class AuthService(
         return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }
 
-    override fun sendOtp(command: SendEmailOtpCommand) {
-        val otp = (100000..999999).random().toString()
-        emailOtpPort.saveOtp(command.email, otp, ttlSeconds = 300)
-
-        emailSendPort.sendWithTemplate(
-            to = command.email,
-            subject = "[Xquare] 이메일 인증 코드",
-            templateName = "email/otp",
-            variables = mapOf(
-                "otp" to otp,
-                "expiresIn" to "5분",
-                "supportEmail" to "abeua8684@gmail.com",
-                "year" to Year.now().value,
-            ),
-        )
-    }
+    override fun sendOtp(command: SendEmailOtpCommand) = emailOtpService.sendOtp(command.email, EmailOtpPurpose.REGISTER)
 
     override fun verifyOtp(command: VerifyEmailOtpCommand): VerifyEmailOtpResult {
-        val savedOtp = emailOtpPort.getOtp(command.email)
-            ?: throw AuthException.OtpNotFound
-
-        if (savedOtp != command.otp) {
-            throw AuthException.OtpMismatch
-        }
-
-        emailOtpPort.deleteOtp(command.email)
-
-        val verifiedToken = (100000..999999).random().toString()
-        emailOtpPort.saveVerifiedToken(verifiedToken, command.email, ttlSeconds = 600)
+        val verifiedToken =
+            emailOtpService.verifyOtpAndIssueVerifiedToken(
+                email = command.email,
+                otp = command.otp,
+                purpose = EmailOtpPurpose.REGISTER,
+            )
 
         return VerifyEmailOtpResult(emailVerifiedToken = verifiedToken)
     }

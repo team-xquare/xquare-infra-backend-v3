@@ -1,0 +1,82 @@
+cors:
+  allowedOrigins:
+    - http://localhost:3000
+
+jwt:
+  secret: asdfasdfasdfasdfasdfasdfasdfasdf
+  access-token-expiration: 36000000
+  refresh-token-expiration: 604800000
+
+email-otp:
+  support-email: support@test.com
+  template-name: email/otp
+  expires-in-text: 5분
+  otp-ttl-seconds: 300
+  verified-token-ttl-seconds: 600
+  register-subject: "[Xquare] 이메일 인증 코드"
+  username-recovery-subject: "[Xquare] 아이디 찾기 코드"
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  datasource:
+    url: jdbc:h2:mem:xquare-infra;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  mail:
+    host: localhost
+    port: 2525
+    username: test
+    password: test
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+
+okhttp:
+  cache-dir: /tmp/xquare-okhttp-test
+  cache-size-mb: 10
+
+github-app:
+  client-id: test-client-id
+  client-secret: test-client-secret
+  redirect-uri: http://localhost:8080/callback
+
+gitops:
+  token: test-gitops-token
+  owner: test-owner
+  repo: test-repo
+  branch: main
+
+argo-workflows:
+  url: http://localhost:2746
+  token: test-argo-token
+
+vault:
+  url: http://localhost:8200
+  token: test-vault-token
+  mount: secret
+
+swagger:
+  user: test-user
+  password: test-password
+
+s3:
+  access-key: test-access-key
+  secret-key: test-secret-key
+  region: ap-northeast-2
+  bucket: test-bucket
