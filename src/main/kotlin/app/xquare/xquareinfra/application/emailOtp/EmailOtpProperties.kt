@@ -11,4 +11,5 @@ data class EmailOtpProperties(
     val verifiedTokenTtlSeconds: Long,
     val registerSubject: String,
     val usernameRecoverySubject: String,
+    val passwordResetSubject: String,
 )

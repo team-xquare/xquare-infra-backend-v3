@@ -34,6 +34,8 @@ class UserPersistenceAdapter(
 
     override fun findByUsername(username: String): User? = userRepository.findByUsername(username)?.toDomain()
 
+    override fun findByEmail(email: String): User? = userRepository.findByEmail(email)?.toDomain()
+
     override fun findById(id: Long): User? = userRepository.findById(id).getOrNull()?.toDomain()
 
     override fun listByNameContaining(name: String): List<User> = userRepository.findByNameContainingIgnoreCase(name).map { it.toDomain() }
@@ -46,4 +48,14 @@ class UserPersistenceAdapter(
         name: String,
         email: String,
     ): List<User> = userRepository.findByStudentNumberAndNameAndEmail(studentNumber, name, email).map { it.toDomain() }
+
+    override fun findByUsernameAndStudentNumberAndNameAndEmail(
+        username: String,
+        studentNumber: Int,
+        name: String,
+        email: String,
+    ): User? =
+        userRepository
+            .findByUsernameAndStudentNumberAndNameAndEmail(username, studentNumber, name, email)
+            ?.toDomain()
 }

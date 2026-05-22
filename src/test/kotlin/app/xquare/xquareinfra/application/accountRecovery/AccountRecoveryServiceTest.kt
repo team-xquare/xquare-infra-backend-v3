@@ -1,9 +1,13 @@
 package app.xquare.xquareinfra.application.accountRecovery
 
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.outbound.UserPersistenceForAccountRecoveryPort
 import app.xquare.xquareinfra.application.auth.AuthException
+import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpProperties
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
@@ -78,6 +82,80 @@ class AccountRecoveryServiceTest {
         assertFalse(fixture.emailOtpPort.hasOtp(EmailOtpPurpose.USERNAME_RECOVERY, "user@test.com"))
     }
 
+    @Test
+    fun `sendPasswordResetOtp sends otp when username and identity fields all match`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "tester",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "user@test.com",
+            ),
+        )
+
+        val sentEmail = fixture.emailSendPort.sentEmails.single()
+        assertEquals("[Xquare] 비밀번호 재설정 코드", sentEmail.subject)
+        assertNotNull(fixture.emailOtpPort.getOtp(EmailOtpPurpose.PASSWORD_RESET, "user@test.com"))
+    }
+
+    @Test
+    fun `verifyPasswordResetOtp returns password reset token`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+        fixture.emailOtpPort.saveOtp(
+            purpose = EmailOtpPurpose.PASSWORD_RESET,
+            email = "user@test.com",
+            otp = "123456",
+            ttlSeconds = 300,
+        )
+
+        val result =
+            fixture.accountRecoveryService.verifyPasswordResetOtp(
+                VerifyPasswordResetOtpCommand(
+                    username = "tester",
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "user@test.com",
+                    otp = "123456",
+                ),
+            )
+
+        assertNotNull(
+            fixture.emailOtpPort.getEmailByVerifiedToken(
+                EmailOtpPurpose.PASSWORD_RESET,
+                result.passwordResetToken,
+            ),
+        )
+    }
+
+    @Test
+    fun `resetPassword changes password and consumes reset token`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+        fixture.emailOtpPort.saveVerifiedToken(
+            purpose = EmailOtpPurpose.PASSWORD_RESET,
+            token = "reset-token",
+            email = "user@test.com",
+            ttlSeconds = 600,
+        )
+
+        fixture.accountRecoveryService.resetPassword(
+            ResetPasswordCommand(
+                passwordResetToken = "reset-token",
+                newPassword = "new-password!",
+            ),
+        )
+
+        assertEquals(
+            "encoded:new-password!",
+            fixture.userPersistencePort.findByEmail("user@test.com")?.password,
+        )
+        assertFalse(fixture.emailOtpPort.hasVerifiedToken(EmailOtpPurpose.PASSWORD_RESET, "reset-token"))
+    }
+
     private fun createFixture(): Fixture {
         val emailOtpPort = FakeEmailOtpPort()
         val emailSendPort = FakeEmailSendPort()
@@ -92,6 +170,7 @@ class AccountRecoveryServiceTest {
         val accountRecoveryService =
             AccountRecoveryService(
                 userPersistencePort = userPersistencePort,
+                passwordEncoderPort = FakePasswordEncoderPort(),
                 emailOtpService = emailOtpService,
             )
 
@@ -107,6 +186,7 @@ class AccountRecoveryServiceTest {
             verifiedTokenTtlSeconds = 600,
             registerSubject = "[Xquare] 이메일 인증 코드",
             usernameRecoverySubject = "[Xquare] 아이디 찾기 코드",
+            passwordResetSubject = "[Xquare] 비밀번호 재설정 코드",
         )
 
     private fun existingUser(): User =
@@ -131,17 +211,41 @@ class AccountRecoveryServiceTest {
         private val users = linkedMapOf<Long, User>()
         private var nextId = 1L
 
-        fun save(user: User): User {
+        override fun save(user: User): User {
             val savedUser = user.copy(id = user.id ?: nextId++)
             users[savedUser.id!!] = savedUser
             return savedUser
         }
 
+        override fun findByEmail(email: String): User? = users.values.firstOrNull { it.email == email }
+
         override fun findByStudentNumberAndNameAndEmail(
             studentNumber: Int,
             name: String,
             email: String,
-        ): List<User> = users.values.filter { it.studentNumber == studentNumber && it.name == name && it.email == email }
+        ): List<User> =
+            users.values.filter {
+                it.studentNumber == studentNumber && it.name == name && it.email == email
+            }
+
+        override fun findByUsernameAndStudentNumberAndNameAndEmail(
+            username: String,
+            studentNumber: Int,
+            name: String,
+            email: String,
+        ): User? =
+            users.values.firstOrNull {
+                it.username == username && it.studentNumber == studentNumber && it.name == name && it.email == email
+            }
+    }
+
+    private class FakePasswordEncoderPort : PasswordEncoderPort {
+        override fun encode(password: String): String = "encoded:$password"
+
+        override fun matches(
+            password: String,
+            encodedPassword: String,
+        ): Boolean = encodedPassword == "encoded:$password"
     }
 
     private class FakeEmailSendPort : EmailSendPort {
@@ -222,6 +326,11 @@ class AccountRecoveryServiceTest {
             purpose: EmailOtpPurpose,
             email: String,
         ): Boolean = otps.containsKey(purpose to email)
+
+        fun hasVerifiedToken(
+            purpose: EmailOtpPurpose,
+            token: String,
+        ): Boolean = verifiedTokens.containsKey(purpose to token)
     }
 
     private data class SentEmail(
