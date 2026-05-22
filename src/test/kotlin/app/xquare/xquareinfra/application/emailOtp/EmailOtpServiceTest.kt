@@ -58,6 +58,7 @@ class EmailOtpServiceTest {
                         verifiedTokenTtlSeconds = 600,
                         registerSubject = "[Xquare] 이메일 인증 코드",
                         usernameRecoverySubject = "[Xquare] 아이디 찾기 코드",
+                        passwordResetSubject = "[Xquare] 비밀번호 재설정 코드",
                     ),
             )
 

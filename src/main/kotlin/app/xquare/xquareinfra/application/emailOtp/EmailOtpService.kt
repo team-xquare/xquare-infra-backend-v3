@@ -88,6 +88,7 @@ class EmailOtpService(
         when (purpose) {
             EmailOtpPurpose.REGISTER -> emailOtpProperties.registerSubject
             EmailOtpPurpose.USERNAME_RECOVERY -> emailOtpProperties.usernameRecoverySubject
+            EmailOtpPurpose.PASSWORD_RESET -> emailOtpProperties.passwordResetSubject
         }
 
     private fun generateCode(): String = (secureRandom.nextInt(900000) + 100000).toString()
