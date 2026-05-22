@@ -5,4 +5,5 @@ enum class EmailOtpPurpose(
 ) {
     REGISTER("register"),
     USERNAME_RECOVERY("username-recovery"),
+    PASSWORD_RESET("password-reset"),
 }

@@ -30,5 +30,8 @@ object AuthExceptionMapper {
 
             is AuthException.EmailNotVerified ->
                 ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_NOT_VERIFIED.toWrappedDto())
+
+            is AuthException.PasswordResetTokenNotFound ->
+                ResponseEntity.badRequest().body(AuthErrorCode.PASSWORD_RESET_TOKEN_NOT_FOUND.toWrappedDto())
         }
 }
