@@ -21,7 +21,9 @@ class AccountRecoveryService(
 ) : SendUsernameFindOtpUseCase,
     VerifyUsernameFindOtpUseCase {
     override fun sendUsernameFindOtp(command: SendUsernameFindOtpCommand) {
-        val user = getUserByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+        val user = userPersistencePort.findByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+            .singleOrNull()
+            ?: return
         emailOtpService.sendOtp(user.email, EmailOtpPurpose.USERNAME_RECOVERY)
     }
 

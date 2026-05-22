@@ -53,11 +53,14 @@ class NoticeController(
         @AuthenticationPrincipal user: User,
         @ModelAttribute request: CreateNoticeRequestDto,
     ): APiWrappedResponseDto<CreateNoticeResponseDto> {
+        val fileUrl = request.file?.takeIf { !it.isEmpty }?.let(fileUploadPort::upload)
+
         val command =
             CreateNoticeCommand(
                 userId = user.id!!,
                 title = request.title,
                 content = request.content,
+                fileUrl = fileUrl,
             )
 
         val result = createNoticeUseCase.createNotice(command)
