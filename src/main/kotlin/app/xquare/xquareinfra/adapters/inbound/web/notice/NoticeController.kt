@@ -1,6 +1,7 @@
 package app.xquare.xquareinfra.adapters.inbound.web.notice
 
 import app.xquare.xquareinfra.adapters.inbound.web.notice.dtos.request.CreateNoticeRequestDto
+import app.xquare.xquareinfra.adapters.inbound.web.notice.dtos.request.UpdateNoticeMultipartRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.notice.dtos.request.UpdateNoticeRequestDto
 import app.xquare.xquareinfra.adapters.inbound.web.notice.dtos.response.CreateNoticeResponseDto
 import app.xquare.xquareinfra.adapters.inbound.web.notice.dtos.response.GetNoticeResponseDto
@@ -23,10 +24,12 @@ import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.MediaType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -34,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 
 @Tag(name = "Notice")
 @SecurityRequirement(name = "bearerAuth")
@@ -48,12 +52,12 @@ class NoticeController(
     private val fileUploadPort: FileUploadPort,
 ) {
     @Operation(summary = "공지 생성")
-    @PostMapping
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun createNotice(
         @AuthenticationPrincipal user: User,
         @ModelAttribute request: CreateNoticeRequestDto,
     ): APiWrappedResponseDto<CreateNoticeResponseDto> {
-        val fileUrl = request.file?.takeIf { !it.isEmpty }?.let(fileUploadPort::upload)
+        val fileUrl = uploadNoticeFile(request.file)
 
         val command =
             CreateNoticeCommand(
@@ -68,7 +72,7 @@ class NoticeController(
     }
 
     @Operation(summary = "공지 수정")
-    @PutMapping("/{noticeId}")
+    @PutMapping("/{noticeId}", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun updateNotice(
         @PathVariable noticeId: Long,
         @AuthenticationPrincipal user: User,
@@ -80,6 +84,29 @@ class NoticeController(
                 noticeId = noticeId,
                 title = request.title,
                 content = request.content,
+            )
+
+        updateNoticeUseCase.updateNotice(command)
+        return APiWrappedResponseDto.success()
+    }
+
+    @Operation(summary = "공지 수정(파일 포함)")
+    @PatchMapping("/{noticeId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun updateNoticeWithFile(
+        @PathVariable noticeId: Long,
+        @AuthenticationPrincipal user: User,
+        @ModelAttribute request: UpdateNoticeMultipartRequestDto,
+    ): APiWrappedResponseDto<Unit> {
+        val fileUrl = uploadNoticeFile(request.file)
+
+        val command =
+            UpdateNoticeCommand(
+                userId = user.id!!,
+                noticeId = noticeId,
+                title = request.title,
+                content = request.content,
+                fileUrl = fileUrl,
+                shouldUpdateFile = request.removeFile || fileUrl != null,
             )
 
         updateNoticeUseCase.updateNotice(command)
@@ -143,4 +170,6 @@ class NoticeController(
             updatedAt = result.notice.updatedAt,
         ).toWrappedDto()
     }
+
+    private fun uploadNoticeFile(file: MultipartFile?): String? = file?.takeIf { !it.isEmpty }?.let(fileUploadPort::upload)
 }
