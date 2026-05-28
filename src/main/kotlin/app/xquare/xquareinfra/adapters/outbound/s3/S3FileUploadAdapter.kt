@@ -14,7 +14,6 @@ import java.util.UUID
 class S3FileUploadAdapter(
     private val s3Client: S3Client,
     @Value("\${s3.bucket}") private val bucket: String,
-    @Value("\${s3.region}") private val region: String,
 ) : FileUploadPort {
     override fun upload(file: MultipartFile): String {
         val safeName = (file.originalFilename ?: "file")
