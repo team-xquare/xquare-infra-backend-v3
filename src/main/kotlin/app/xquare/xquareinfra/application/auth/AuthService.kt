@@ -66,10 +66,9 @@ class AuthService(
         )
 
         val savedUser = userPersistencePort.save(user)
-        emailOtpService.deleteVerifiedToken(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
-
         val accessToken = accessTokenPort.create(savedUser.id!!)
         val refreshToken = refreshTokenPort.create(savedUser.id)
+        emailOtpService.deleteVerifiedToken(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
 
         return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }

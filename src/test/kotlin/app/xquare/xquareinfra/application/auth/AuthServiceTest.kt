@@ -11,6 +11,7 @@ import app.xquare.xquareinfra.application.emailOtp.EmailOtpProperties
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import app.xquare.xquareinfra.domain.user.User
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -211,11 +212,18 @@ class AuthServiceTest {
             email: String,
         ): String? = otps[purpose to email]
 
-        override fun deleteOtp(
+        override fun consumeOtp(
             purpose: EmailOtpPurpose,
             email: String,
-        ) {
-            otps.remove(purpose to email)
+            otp: String,
+        ): OtpConsumeResult {
+            val key = purpose to email
+            val savedOtp = otps[key] ?: return OtpConsumeResult.NOT_FOUND
+            if (savedOtp != otp) {
+                return OtpConsumeResult.MISMATCH
+            }
+            otps.remove(key)
+            return OtpConsumeResult.CONSUMED
         }
 
         override fun saveVerifiedToken(

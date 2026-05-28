@@ -3,6 +3,7 @@ package app.xquare.xquareinfra.application.emailOtp
 import app.xquare.xquareinfra.application.auth.AuthException
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import org.springframework.stereotype.Service
 import java.time.Year
 import java.security.SecureRandom
@@ -46,14 +47,11 @@ class EmailOtpService(
         otp: String,
         purpose: EmailOtpPurpose,
     ) {
-        val savedOtp = emailOtpPort.getOtp(purpose, email)
-            ?: throw AuthException.OtpNotFound
-
-        if (savedOtp != otp) {
-            throw AuthException.OtpMismatch
+        when (emailOtpPort.consumeOtp(purpose, email, otp)) {
+            OtpConsumeResult.CONSUMED -> return
+            OtpConsumeResult.NOT_FOUND -> throw AuthException.OtpNotFound
+            OtpConsumeResult.MISMATCH -> throw AuthException.OtpMismatch
         }
-
-        emailOtpPort.deleteOtp(purpose, email)
     }
 
     fun verifyOtpAndIssueVerifiedToken(

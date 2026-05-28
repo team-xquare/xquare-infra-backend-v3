@@ -9,6 +9,7 @@ import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
 import kotlin.test.Test
@@ -37,19 +38,19 @@ class AccountRecoveryServiceTest {
     }
 
     @Test
-    fun `sendUsernameFindOtp throws generic mismatch when any identity field is wrong`() {
+    fun `sendUsernameFindOtp does nothing when identity fields do not match`() {
         val fixture = createFixture()
         fixture.userPersistencePort.save(existingUser())
 
-        assertThrows<AuthException.InvalidUserInfo> {
-            fixture.accountRecoveryService.sendUsernameFindOtp(
-                SendUsernameFindOtpCommand(
-                    studentNumber = 1101,
-                    name = "다른이름",
-                    email = "user@test.com",
-                ),
-            )
-        }
+        fixture.accountRecoveryService.sendUsernameFindOtp(
+            SendUsernameFindOtpCommand(
+                studentNumber = 1101,
+                name = "다른이름",
+                email = "user@test.com",
+            ),
+        )
+
+        assertEquals(emptyList(), fixture.emailSendPort.sentEmails)
     }
 
     @Test
@@ -182,11 +183,18 @@ class AccountRecoveryServiceTest {
             email: String,
         ): String? = otps[purpose to email]
 
-        override fun deleteOtp(
+        override fun consumeOtp(
             purpose: EmailOtpPurpose,
             email: String,
-        ) {
-            otps.remove(purpose to email)
+            otp: String,
+        ): OtpConsumeResult {
+            val key = purpose to email
+            val savedOtp = otps[key] ?: return OtpConsumeResult.NOT_FOUND
+            if (savedOtp != otp) {
+                return OtpConsumeResult.MISMATCH
+            }
+            otps.remove(key)
+            return OtpConsumeResult.CONSUMED
         }
 
         override fun saveVerifiedToken(
