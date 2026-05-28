@@ -8,7 +8,7 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRY:604800000} # 7 days
 
 email-otp:
-  support-email: ${EMAIL_OTP_SUPPORT_EMAIL:abeua8684@gmail.com}
+  support-email: ${EMAIL_OTP_SUPPORT_EMAIL}
   template-name: ${EMAIL_OTP_TEMPLATE_NAME:email/otp}
   expires-in-text: "${EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
   otp-ttl-seconds: ${EMAIL_OTP_TTL_SECONDS:300}

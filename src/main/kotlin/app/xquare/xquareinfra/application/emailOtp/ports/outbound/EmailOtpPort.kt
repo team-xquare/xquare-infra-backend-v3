@@ -15,10 +15,11 @@ interface EmailOtpPort {
         email: String,
     ): String?
 
-    fun deleteOtp(
+    fun consumeOtp(
         purpose: EmailOtpPurpose,
         email: String,
-    )
+        otp: String,
+    ): OtpConsumeResult
 
     fun saveVerifiedToken(
         purpose: EmailOtpPurpose,
@@ -36,4 +37,10 @@ interface EmailOtpPort {
         purpose: EmailOtpPurpose,
         token: String,
     )
+}
+
+enum class OtpConsumeResult {
+    CONSUMED,
+    NOT_FOUND,
+    MISMATCH,
 }

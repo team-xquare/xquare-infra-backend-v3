@@ -17,6 +17,7 @@ data class VerifyUsernameFindOtpRequestDto(
     val name: String,
     @field:Email
     val email: String,
+    @field:Pattern(regexp = "^\\d{6}$")
     @field:Size(min = 6, max = 6)
     @field:NotBlank
     val otp: String,
