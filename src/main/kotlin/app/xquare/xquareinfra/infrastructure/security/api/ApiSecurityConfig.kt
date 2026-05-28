@@ -33,5 +33,4 @@ class ApiSecurityConfig(
             .formLogin { it.disable() }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
-
 }
