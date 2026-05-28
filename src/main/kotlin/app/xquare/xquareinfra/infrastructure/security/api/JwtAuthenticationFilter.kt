@@ -35,7 +35,7 @@ class JwtAuthenticationFilter(
             }
 
             val userId = jwtProvider.extractUserId(token) ?: return
-            val user = runCatching { getUserUseCase.getUser(GetUserQuery(userId)).user }.getOrNull()
+            val user = runCatching { getUserUseCase.getUser(GetUserQuery(userId)).user }.getOrNull()?: return
 
             val auth = UsernamePasswordAuthenticationToken(user, null, null)
 
