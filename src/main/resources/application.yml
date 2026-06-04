@@ -53,6 +53,12 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+
+
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}
   cache-size-mb: ${OKHTTP_CACHE_SIZE_MB}
@@ -80,3 +86,9 @@ vault:
 swagger:
   user: ${SWAGGER_USER}
   password: ${SWAGGER_PASSWORD}
+
+s3:
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: ${S3_REGION:ap-northeast-2}
+  bucket: ${S3_BUCKET}

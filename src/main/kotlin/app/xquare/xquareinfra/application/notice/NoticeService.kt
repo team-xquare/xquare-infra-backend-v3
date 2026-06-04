@@ -48,6 +48,7 @@ class NoticeService(
                 title = command.title,
                 content = command.content,
                 author = user,
+                fileUrl = command.fileUrl,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now(),
             )

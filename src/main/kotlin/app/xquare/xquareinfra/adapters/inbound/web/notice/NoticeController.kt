@@ -16,6 +16,7 @@ import app.xquare.xquareinfra.application.notice.ports.inbound.ListNoticesQuery
 import app.xquare.xquareinfra.application.notice.ports.inbound.ListNoticesUseCase
 import app.xquare.xquareinfra.application.notice.ports.inbound.UpdateNoticeCommand
 import app.xquare.xquareinfra.application.notice.ports.inbound.UpdateNoticeUseCase
+import app.xquare.xquareinfra.application.notice.ports.outbound.FileUploadPort
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -43,12 +45,13 @@ class NoticeController(
     private val deleteNoticeUseCase: DeleteNoticeUseCase,
     private val listNoticesUseCase: ListNoticesUseCase,
     private val getNoticeUseCase: GetNoticeUseCase,
+    private val fileUploadPort: FileUploadPort,
 ) {
     @Operation(summary = "공지 생성")
     @PostMapping
     fun createNotice(
         @AuthenticationPrincipal user: User,
-        @RequestBody request: CreateNoticeRequestDto,
+        @ModelAttribute request: CreateNoticeRequestDto,
     ): APiWrappedResponseDto<CreateNoticeResponseDto> {
         val command =
             CreateNoticeCommand(
@@ -132,6 +135,7 @@ class NoticeController(
             title = result.notice.title,
             content = result.notice.content,
             author = result.notice.author.name,
+            fileUrl = result.notice.fileUrl,
             createdAt = result.notice.createdAt,
             updatedAt = result.notice.updatedAt,
         ).toWrappedDto()

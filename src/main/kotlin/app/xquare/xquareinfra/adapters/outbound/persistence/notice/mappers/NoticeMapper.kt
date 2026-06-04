@@ -11,6 +11,7 @@ fun Notice.toPersistence(): NoticePersistenceEntity =
         title = this.title,
         content = this.content,
         author = this.author.toPersistence(),
+        fileUrl = this.fileUrl,
         createdAt = this.createdAt,
         updatedAt = this.updatedAt,
     )
@@ -21,6 +22,7 @@ fun NoticePersistenceEntity.toDomain(): Notice =
         title = this.title,
         content = this.content,
         author = this.author.toDomain(),
+        fileUrl = this.fileUrl,
         createdAt = this.createdAt,
         updatedAt = this.updatedAt,
     )
