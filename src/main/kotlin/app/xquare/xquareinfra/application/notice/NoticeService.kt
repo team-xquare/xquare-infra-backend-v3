@@ -48,6 +48,7 @@ class NoticeService(
                 title = command.title,
                 content = command.content,
                 author = user,
+                fileUrl = command.fileUrl,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now(),
             )
@@ -73,6 +74,7 @@ class NoticeService(
             notice.copy(
                 title = command.title,
                 content = command.content,
+                fileUrl = if (command.shouldUpdateFile) command.fileUrl else notice.fileUrl,
                 updatedAt = LocalDateTime.now(),
             )
 

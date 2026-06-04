@@ -59,4 +59,9 @@ object Dependencies {
         const val OKHTTP = "com.squareup.okhttp3:okhttp:$OKHTTP_VERSION"
         const val OKHTTP_LOGGING_INTERCEPTOR = "com.squareup.okhttp3:logging-interceptor:$OKHTTP_VERSION"
     }
+    object AWS {
+        const val VERSION = "2.42.23"
+        const val BOM = "software.amazon.awssdk:bom:$VERSION"
+        const val S3 = "software.amazon.awssdk:s3"
+    }
 }

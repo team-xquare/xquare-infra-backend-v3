@@ -58,6 +58,9 @@ dependencies {
     implementation(Dependencies.SpringBoot.MAIL)
 
     implementation(Dependencies.SpringBoot.DATA_REDIS)
+
+    implementation(platform(Dependencies.AWS.BOM))
+    implementation(Dependencies.AWS.S3)
 }
 
 kotlin {

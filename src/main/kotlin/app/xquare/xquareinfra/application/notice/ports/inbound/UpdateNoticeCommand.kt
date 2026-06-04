@@ -5,6 +5,8 @@ data class UpdateNoticeCommand(
     val noticeId: Long,
     val title: String,
     val content: String,
+    val fileUrl: String? = null,
+    val shouldUpdateFile: Boolean = false,
 )
 
 data object UpdateNoticeResult

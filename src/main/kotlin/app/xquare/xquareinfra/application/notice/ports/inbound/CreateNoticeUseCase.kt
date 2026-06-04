@@ -4,6 +4,7 @@ data class CreateNoticeCommand(
     val userId: Long,
     val title: String,
     val content: String,
+    val fileUrl: String? = null,
 )
 
 data class CreateNoticeResult(
