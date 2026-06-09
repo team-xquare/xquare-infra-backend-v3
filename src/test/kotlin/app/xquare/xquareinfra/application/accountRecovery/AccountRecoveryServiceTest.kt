@@ -1,6 +1,9 @@
 package app.xquare.xquareinfra.application.accountRecovery
 
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.outbound.UserPersistenceForAccountRecoveryPort
 import app.xquare.xquareinfra.application.auth.AuthException
@@ -11,10 +14,12 @@ import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
 import app.xquare.xquareinfra.testFixtures.FakeEmailOtpPort
 import app.xquare.xquareinfra.testFixtures.FakeEmailSendPort
+import app.xquare.xquareinfra.testFixtures.FakePasswordEncoderPort
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.assertThrows
 
 class AccountRecoveryServiceTest {
     @Test
@@ -77,6 +82,42 @@ class AccountRecoveryServiceTest {
     }
 
     @Test
+    fun `sendPasswordResetOtp sends otp when username and identity fields all match`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "tester",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "user@test.com",
+            ),
+        )
+
+        val sentEmail = fixture.emailSendPort.sentEmails.single()
+        assertEquals("[Xquare] 비밀번호 재설정 코드", sentEmail.subject)
+        assertNotNull(fixture.emailOtpPort.getOtp(EmailOtpPurpose.PASSWORD_RESET, "user@test.com"))
+    }
+
+    @Test
+    fun `sendPasswordResetOtp does nothing when username and identity fields do not match`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "other-user",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "user@test.com",
+            ),
+        )
+
+        assertEquals(emptyList(), fixture.emailSendPort.sentEmails)
+    }
+
+    @Test
     fun `account recovery lookups ignore email case`() {
         val fixture = createFixture()
         fixture.userPersistencePort.save(existingUser())
@@ -88,8 +129,71 @@ class AccountRecoveryServiceTest {
                 email = "USER@Test.com",
             ),
         )
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "tester",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "USER@Test.com",
+            ),
+        )
 
-        assertEquals(1, fixture.emailSendPort.sentEmails.size)
+        assertEquals(2, fixture.emailSendPort.sentEmails.size)
+    }
+
+    @Test
+    fun `verifyPasswordResetOtp returns password reset token`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+        fixture.emailOtpPort.saveOtp(
+            purpose = EmailOtpPurpose.PASSWORD_RESET,
+            email = "user@test.com",
+            otp = "123456",
+            ttlSeconds = 300,
+        )
+
+        val result =
+            fixture.accountRecoveryService.verifyPasswordResetOtp(
+                VerifyPasswordResetOtpCommand(
+                    username = "tester",
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "user@test.com",
+                    otp = "123456",
+                ),
+            )
+
+        assertNotNull(
+            fixture.emailOtpPort.consumeVerifiedToken(
+                EmailOtpPurpose.PASSWORD_RESET,
+                result.passwordResetToken,
+            ),
+        )
+    }
+
+    @Test
+    fun `resetPassword changes password and consumes reset token`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+        fixture.emailOtpPort.saveVerifiedToken(
+            purpose = EmailOtpPurpose.PASSWORD_RESET,
+            token = "reset-token",
+            email = "user@test.com",
+            ttlSeconds = 600,
+        )
+
+        fixture.accountRecoveryService.resetPassword(
+            ResetPasswordCommand(
+                passwordResetToken = "reset-token",
+                newPassword = "new-password!",
+            ),
+        )
+
+        assertEquals(
+            "encoded:new-password!",
+            fixture.userPersistencePort.findByEmail("user@test.com")?.password,
+        )
+        assertFalse(fixture.emailOtpPort.hasVerifiedToken(EmailOtpPurpose.PASSWORD_RESET, "reset-token"))
     }
 
     private fun createFixture(): Fixture {
@@ -106,6 +210,7 @@ class AccountRecoveryServiceTest {
         val accountRecoveryService =
             AccountRecoveryService(
                 userPersistencePort = userPersistencePort,
+                passwordEncoderPort = FakePasswordEncoderPort(),
                 emailOtpService = emailOtpService,
             )
 
@@ -146,11 +251,13 @@ class AccountRecoveryServiceTest {
         private val users = linkedMapOf<Long, User>()
         private var nextId = 1L
 
-        fun save(user: User): User {
+        override fun save(user: User): User {
             val savedUser = user.copy(id = user.id ?: nextId++)
             users[savedUser.id!!] = savedUser
             return savedUser
         }
+
+        override fun findByEmail(email: String): User? = users.values.firstOrNull { it.email == email }
 
         override fun findByStudentNumberAndNameAndEmail(
             studentNumber: Int,
@@ -161,5 +268,17 @@ class AccountRecoveryServiceTest {
                 it.studentNumber == studentNumber && it.name == name && it.email.equals(email, ignoreCase = true)
             }
 
+        override fun findByUsernameAndStudentNumberAndNameAndEmail(
+            username: String,
+            studentNumber: Int,
+            name: String,
+            email: String,
+        ): User? =
+            users.values.firstOrNull {
+                it.username == username &&
+                    it.studentNumber == studentNumber &&
+                    it.name == name &&
+                    it.email.equals(email, ignoreCase = true)
+            }
     }
 }
