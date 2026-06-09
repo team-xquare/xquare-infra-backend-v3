@@ -12,6 +12,12 @@ interface UserRepository : JpaRepository<UserPersistenceEntity, Long> {
 
     fun findByUsername(username: String): UserPersistenceEntity?
 
+    fun findByStudentNumberAndNameAndEmailIgnoreCase(
+        studentNumber: Int,
+        name: String,
+        email: String,
+    ): List<UserPersistenceEntity>
+
     fun findByNameContainingIgnoreCase(name: String): List<UserPersistenceEntity>
 
     fun findByEmailContainingIgnoreCase(name: String): List<UserPersistenceEntity>

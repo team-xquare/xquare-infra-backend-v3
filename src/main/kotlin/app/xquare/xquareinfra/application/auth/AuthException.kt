@@ -9,6 +9,8 @@ sealed class AuthException : UseCaseException() {
 
     data object EmailAlreadyExists : AuthException()
 
+    data object InvalidUserInfo : AuthException()
+
     data object InvalidRefreshToken : AuthException()
 
     data object OtpNotFound : AuthException()
