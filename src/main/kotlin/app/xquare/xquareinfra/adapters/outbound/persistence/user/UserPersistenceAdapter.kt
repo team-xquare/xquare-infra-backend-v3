@@ -47,7 +47,7 @@ class UserPersistenceAdapter(
         studentNumber: Int,
         name: String,
         email: String,
-    ): List<User> = userRepository.findByStudentNumberAndNameAndEmail(studentNumber, name, email).map { it.toDomain() }
+    ): List<User> = userRepository.findByStudentNumberAndNameAndEmailIgnoreCase(studentNumber, name, email).map { it.toDomain() }
 
     override fun findByUsernameAndStudentNumberAndNameAndEmail(
         username: String,
@@ -56,6 +56,6 @@ class UserPersistenceAdapter(
         email: String,
     ): User? =
         userRepository
-            .findByUsernameAndStudentNumberAndNameAndEmail(username, studentNumber, name, email)
+            .findByUsernameAndStudentNumberAndNameAndEmailIgnoreCase(username, studentNumber, name, email)
             ?.toDomain()
 }

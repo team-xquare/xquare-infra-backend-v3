@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size
 data class VerifyPasswordResetOtpRequestDto(
     @field:Size(min = 4, max = 15)
     @field:Pattern(
-        regexp = "^[A-z0-9_-]+$",
+        regexp = "^[A-Za-z0-9_-]+$",
     )
     val username: String,
     @field:Min(1000)

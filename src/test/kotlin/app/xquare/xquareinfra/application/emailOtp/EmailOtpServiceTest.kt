@@ -42,6 +42,35 @@ class EmailOtpServiceTest {
         }
     }
 
+    @Test
+    fun `verifying otp locks it after repeated mismatches`() {
+        val fixture = createFixture()
+        fixture.emailOtpPort.saveOtp(
+            purpose = EmailOtpPurpose.REGISTER,
+            email = "user@test.com",
+            otp = "123456",
+            ttlSeconds = 300,
+        )
+
+        repeat(5) {
+            assertThrows<AuthException.OtpMismatch> {
+                fixture.emailOtpService.verifyOtp(
+                    email = "user@test.com",
+                    otp = "000000",
+                    purpose = EmailOtpPurpose.REGISTER,
+                )
+            }
+        }
+
+        assertThrows<AuthException.OtpNotFound> {
+            fixture.emailOtpService.verifyOtp(
+                email = "user@test.com",
+                otp = "123456",
+                purpose = EmailOtpPurpose.REGISTER,
+            )
+        }
+    }
+
     private fun createFixture(): Fixture {
         val emailOtpPort = FakeEmailOtpPort()
         val emailSendPort = FakeEmailSendPort()
@@ -94,6 +123,7 @@ class EmailOtpServiceTest {
 
     private class FakeEmailOtpPort : EmailOtpPort {
         private val otps = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
+        private val otpFailures = mutableMapOf<Pair<EmailOtpPurpose, String>, Int>()
         private val verifiedTokens = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
 
         override fun saveOtp(
@@ -103,6 +133,7 @@ class EmailOtpServiceTest {
             ttlSeconds: Long,
         ) {
             otps[purpose to email] = otp
+            otpFailures.remove(purpose to email)
         }
 
         override fun getOtp(
@@ -121,7 +152,24 @@ class EmailOtpServiceTest {
                 return OtpConsumeResult.MISMATCH
             }
             otps.remove(key)
+            otpFailures.remove(key)
             return OtpConsumeResult.CONSUMED
+        }
+
+        override fun recordOtpFailure(
+            purpose: EmailOtpPurpose,
+            email: String,
+            ttlSeconds: Long,
+            maxFailures: Int,
+        ) {
+            val key = purpose to email
+            val failures = (otpFailures[key] ?: 0) + 1
+            if (failures >= maxFailures) {
+                otps.remove(key)
+                otpFailures.remove(key)
+                return
+            }
+            otpFailures[key] = failures
         }
 
         override fun saveVerifiedToken(
@@ -133,16 +181,18 @@ class EmailOtpServiceTest {
             verifiedTokens[purpose to token] = email
         }
 
-        override fun getEmailByVerifiedToken(
+        override fun consumeVerifiedToken(
             purpose: EmailOtpPurpose,
             token: String,
-        ): String? = verifiedTokens[purpose to token]
-
-        override fun deleteVerifiedToken(
-            purpose: EmailOtpPurpose,
-            token: String,
-        ) {
-            verifiedTokens.remove(purpose to token)
+            expectedEmail: String?,
+        ): String? {
+            val key = purpose to token
+            val email = verifiedTokens[key] ?: return null
+            if (expectedEmail != null && email != expectedEmail) {
+                return null
+            }
+            verifiedTokens.remove(key)
+            return email
         }
     }
 

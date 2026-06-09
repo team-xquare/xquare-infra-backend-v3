@@ -102,6 +102,47 @@ class AccountRecoveryServiceTest {
     }
 
     @Test
+    fun `sendPasswordResetOtp does nothing when username and identity fields do not match`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "other-user",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "user@test.com",
+            ),
+        )
+
+        assertEquals(emptyList(), fixture.emailSendPort.sentEmails)
+    }
+
+    @Test
+    fun `account recovery lookups ignore email case`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        fixture.accountRecoveryService.sendUsernameFindOtp(
+            SendUsernameFindOtpCommand(
+                studentNumber = 1101,
+                name = "테스터",
+                email = "USER@Test.com",
+            ),
+        )
+        fixture.accountRecoveryService.sendPasswordResetOtp(
+            SendPasswordResetOtpCommand(
+                username = "tester",
+                studentNumber = 1101,
+                name = "테스터",
+                email = "USER@Test.com",
+            ),
+        )
+
+        assertEquals(2, fixture.emailSendPort.sentEmails.size)
+    }
+
+    @Test
     fun `verifyPasswordResetOtp returns password reset token`() {
         val fixture = createFixture()
         fixture.userPersistencePort.save(existingUser())
@@ -124,7 +165,7 @@ class AccountRecoveryServiceTest {
             )
 
         assertNotNull(
-            fixture.emailOtpPort.getEmailByVerifiedToken(
+            fixture.emailOtpPort.consumeVerifiedToken(
                 EmailOtpPurpose.PASSWORD_RESET,
                 result.passwordResetToken,
             ),
@@ -225,7 +266,7 @@ class AccountRecoveryServiceTest {
             email: String,
         ): List<User> =
             users.values.filter {
-                it.studentNumber == studentNumber && it.name == name && it.email == email
+                it.studentNumber == studentNumber && it.name == name && it.email.equals(email, ignoreCase = true)
             }
 
         override fun findByUsernameAndStudentNumberAndNameAndEmail(
@@ -235,7 +276,10 @@ class AccountRecoveryServiceTest {
             email: String,
         ): User? =
             users.values.firstOrNull {
-                it.username == username && it.studentNumber == studentNumber && it.name == name && it.email == email
+                it.username == username &&
+                    it.studentNumber == studentNumber &&
+                    it.name == name &&
+                    it.email.equals(email, ignoreCase = true)
             }
     }
 
@@ -271,6 +315,7 @@ class AccountRecoveryServiceTest {
 
     private class FakeEmailOtpPort : EmailOtpPort {
         private val otps = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
+        private val otpFailures = mutableMapOf<Pair<EmailOtpPurpose, String>, Int>()
         private val verifiedTokens = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
 
         override fun saveOtp(
@@ -280,6 +325,7 @@ class AccountRecoveryServiceTest {
             ttlSeconds: Long,
         ) {
             otps[purpose to email] = otp
+            otpFailures.remove(purpose to email)
         }
 
         override fun getOtp(
@@ -298,7 +344,24 @@ class AccountRecoveryServiceTest {
                 return OtpConsumeResult.MISMATCH
             }
             otps.remove(key)
+            otpFailures.remove(key)
             return OtpConsumeResult.CONSUMED
+        }
+
+        override fun recordOtpFailure(
+            purpose: EmailOtpPurpose,
+            email: String,
+            ttlSeconds: Long,
+            maxFailures: Int,
+        ) {
+            val key = purpose to email
+            val failures = (otpFailures[key] ?: 0) + 1
+            if (failures >= maxFailures) {
+                otps.remove(key)
+                otpFailures.remove(key)
+                return
+            }
+            otpFailures[key] = failures
         }
 
         override fun saveVerifiedToken(
@@ -310,16 +373,18 @@ class AccountRecoveryServiceTest {
             verifiedTokens[purpose to token] = email
         }
 
-        override fun getEmailByVerifiedToken(
+        override fun consumeVerifiedToken(
             purpose: EmailOtpPurpose,
             token: String,
-        ): String? = verifiedTokens[purpose to token]
-
-        override fun deleteVerifiedToken(
-            purpose: EmailOtpPurpose,
-            token: String,
-        ) {
-            verifiedTokens.remove(purpose to token)
+            expectedEmail: String?,
+        ): String? {
+            val key = purpose to token
+            val email = verifiedTokens[key] ?: return null
+            if (expectedEmail != null && email != expectedEmail) {
+                return null
+            }
+            verifiedTokens.remove(key)
+            return email
         }
 
         fun hasOtp(

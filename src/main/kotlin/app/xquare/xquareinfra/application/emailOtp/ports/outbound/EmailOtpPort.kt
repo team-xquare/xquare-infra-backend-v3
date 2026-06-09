@@ -21,6 +21,13 @@ interface EmailOtpPort {
         otp: String,
     ): OtpConsumeResult
 
+    fun recordOtpFailure(
+        purpose: EmailOtpPurpose,
+        email: String,
+        ttlSeconds: Long,
+        maxFailures: Int,
+    )
+
     fun saveVerifiedToken(
         purpose: EmailOtpPurpose,
         token: String,
@@ -28,15 +35,11 @@ interface EmailOtpPort {
         ttlSeconds: Long,
     )
 
-    fun getEmailByVerifiedToken(
+    fun consumeVerifiedToken(
         purpose: EmailOtpPurpose,
         token: String,
+        expectedEmail: String? = null,
     ): String?
-
-    fun deleteVerifiedToken(
-        purpose: EmailOtpPurpose,
-        token: String,
-    )
 }
 
 enum class OtpConsumeResult {

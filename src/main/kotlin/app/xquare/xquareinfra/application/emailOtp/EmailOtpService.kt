@@ -15,6 +15,10 @@ class EmailOtpService(
     private val emailSendPort: EmailSendPort,
     private val emailOtpProperties: EmailOtpProperties,
 ) {
+    companion object {
+        private const val MAX_OTP_FAILURES = 5
+    }
+
     private val secureRandom = SecureRandom()
 
     fun sendOtp(
@@ -50,7 +54,15 @@ class EmailOtpService(
         when (emailOtpPort.consumeOtp(purpose, email, otp)) {
             OtpConsumeResult.CONSUMED -> return
             OtpConsumeResult.NOT_FOUND -> throw AuthException.OtpNotFound
-            OtpConsumeResult.MISMATCH -> throw AuthException.OtpMismatch
+            OtpConsumeResult.MISMATCH -> {
+                emailOtpPort.recordOtpFailure(
+                    purpose = purpose,
+                    email = email,
+                    ttlSeconds = emailOtpProperties.otpTtlSeconds,
+                    maxFailures = MAX_OTP_FAILURES,
+                )
+                throw AuthException.OtpMismatch
+            }
         }
     }
 
@@ -72,17 +84,11 @@ class EmailOtpService(
         return verifiedToken
     }
 
-    fun getVerifiedEmail(
+    fun consumeVerifiedEmail(
         token: String,
         purpose: EmailOtpPurpose,
-    ): String? = emailOtpPort.getEmailByVerifiedToken(purpose, token)
-
-    fun deleteVerifiedToken(
-        token: String,
-        purpose: EmailOtpPurpose,
-    ) {
-        emailOtpPort.deleteVerifiedToken(purpose, token)
-    }
+        expectedEmail: String? = null,
+    ): String? = emailOtpPort.consumeVerifiedToken(purpose, token, expectedEmail)
 
     private fun getSubject(purpose: EmailOtpPurpose): String =
         when (purpose) {

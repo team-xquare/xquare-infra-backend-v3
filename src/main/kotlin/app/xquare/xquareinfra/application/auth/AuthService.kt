@@ -39,13 +39,12 @@ class AuthService(
     SendEmailOtpUseCase,
     VerifyEmailOtpUseCase {
     override fun register(command: RegisterCommand): RegisterResult {
-        val verifiedEmail =
-            emailOtpService.getVerifiedEmail(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
-                ?: throw AuthException.EmailNotVerified
-
-        if (verifiedEmail != command.email) {
-            throw AuthException.EmailNotVerified
-        }
+        emailOtpService.consumeVerifiedEmail(
+            command.emailVerifiedToken,
+            EmailOtpPurpose.REGISTER,
+            command.email,
+        )
+            ?: throw AuthException.EmailNotVerified
 
         if (userPersistencePort.existsByEmail(command.email)) {
             throw AuthException.EmailAlreadyExists
@@ -68,7 +67,6 @@ class AuthService(
         val savedUser = userPersistencePort.save(user)
         val accessToken = accessTokenPort.create(savedUser.id!!)
         val refreshToken = refreshTokenPort.create(savedUser.id)
-        emailOtpService.deleteVerifiedToken(command.emailVerifiedToken, EmailOtpPurpose.REGISTER)
 
         return RegisterResult(accessToken = accessToken, refreshToken = refreshToken)
     }

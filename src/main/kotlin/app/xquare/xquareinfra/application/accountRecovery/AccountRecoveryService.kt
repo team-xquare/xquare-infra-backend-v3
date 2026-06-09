@@ -52,12 +52,12 @@ class AccountRecoveryService(
 
     override fun sendPasswordResetOtp(command: SendPasswordResetOtpCommand) {
         val user =
-            getUserByUsernameAndStudentNumberAndNameAndEmail(
+            userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(
                 command.username,
                 command.studentNumber,
                 command.name,
                 command.email,
-            )
+            ) ?: return
         emailOtpService.sendOtp(user.email, EmailOtpPurpose.PASSWORD_RESET)
     }
 
@@ -81,13 +81,12 @@ class AccountRecoveryService(
 
     override fun resetPassword(command: ResetPasswordCommand) {
         val email =
-            emailOtpService.getVerifiedEmail(command.passwordResetToken, EmailOtpPurpose.PASSWORD_RESET)
+            emailOtpService.consumeVerifiedEmail(command.passwordResetToken, EmailOtpPurpose.PASSWORD_RESET)
                 ?: throw AuthException.PasswordResetTokenNotFound
         val user = userPersistencePort.findByEmail(email) ?: throw AuthException.PasswordResetTokenNotFound
         val encodedPassword = passwordEncoderPort.encode(command.newPassword)
 
         userPersistencePort.save(user.copy(password = encodedPassword))
-        emailOtpService.deleteVerifiedToken(command.passwordResetToken, EmailOtpPurpose.PASSWORD_RESET)
     }
 
     private fun getUserByStudentNumberAndNameAndEmail(

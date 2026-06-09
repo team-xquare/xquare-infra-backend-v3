@@ -31,6 +31,41 @@ class RedisEmailOtpAdapter(
                 )
                 resultType = Long::class.java
             }
+        private val RECORD_OTP_FAILURE_SCRIPT =
+            DefaultRedisScript<Long>().apply {
+                setScriptText(
+                    """
+                    local failures = redis.call('INCR', KEYS[2])
+                    local ttl = tonumber(ARGV[1])
+                    if ttl > 0 then
+                        redis.call('EXPIRE', KEYS[2], ttl)
+                    end
+                    if failures >= tonumber(ARGV[2]) then
+                        redis.call('DEL', KEYS[1])
+                        redis.call('DEL', KEYS[2])
+                    end
+                    return failures
+                    """.trimIndent(),
+                )
+                resultType = Long::class.java
+            }
+        private val CONSUME_VERIFIED_TOKEN_SCRIPT =
+            DefaultRedisScript<String>().apply {
+                setScriptText(
+                    """
+                    local current = redis.call('GET', KEYS[1])
+                    if not current then
+                        return nil
+                    end
+                    if ARGV[1] ~= '' and current ~= ARGV[1] then
+                        return nil
+                    end
+                    redis.call('DEL', KEYS[1])
+                    return current
+                    """.trimIndent(),
+                )
+                resultType = String::class.java
+            }
     }
 
     private fun otpKey(
@@ -42,6 +77,11 @@ class RedisEmailOtpAdapter(
         purpose: EmailOtpPurpose,
         token: String,
     ): String = "verified:${purpose.key}:$token"
+
+    private fun otpFailureKey(
+        purpose: EmailOtpPurpose,
+        email: String,
+    ): String = "${otpKey(purpose, email)}:failures"
 
     private fun hashEmail(email: String): String =
         MessageDigest.getInstance("SHA-256")
@@ -55,6 +95,7 @@ class RedisEmailOtpAdapter(
         ttlSeconds: Long,
     ) {
         redisTemplate.opsForValue().set(otpKey(purpose, email), otp, ttlSeconds, TimeUnit.SECONDS)
+        redisTemplate.delete(otpFailureKey(purpose, email))
     }
 
     override fun getOtp(
@@ -81,6 +122,20 @@ class RedisEmailOtpAdapter(
         }
     }
 
+    override fun recordOtpFailure(
+        purpose: EmailOtpPurpose,
+        email: String,
+        ttlSeconds: Long,
+        maxFailures: Int,
+    ) {
+        redisTemplate.execute(
+            RECORD_OTP_FAILURE_SCRIPT,
+            listOf(otpKey(purpose, email), otpFailureKey(purpose, email)),
+            ttlSeconds.toString(),
+            maxFailures.toString(),
+        )
+    }
+
     override fun saveVerifiedToken(
         purpose: EmailOtpPurpose,
         token: String,
@@ -90,15 +145,14 @@ class RedisEmailOtpAdapter(
         redisTemplate.opsForValue().set(verifiedTokenKey(purpose, token), email, ttlSeconds, TimeUnit.SECONDS)
     }
 
-    override fun getEmailByVerifiedToken(
+    override fun consumeVerifiedToken(
         purpose: EmailOtpPurpose,
         token: String,
-    ): String? = redisTemplate.opsForValue().get(verifiedTokenKey(purpose, token))
-
-    override fun deleteVerifiedToken(
-        purpose: EmailOtpPurpose,
-        token: String,
-    ) {
-        redisTemplate.delete(verifiedTokenKey(purpose, token))
-    }
+        expectedEmail: String?,
+    ): String? =
+        redisTemplate.execute(
+            CONSUME_VERIFIED_TOKEN_SCRIPT,
+            listOf(verifiedTokenKey(purpose, token)),
+            expectedEmail.orEmpty(),
+        )
 }
