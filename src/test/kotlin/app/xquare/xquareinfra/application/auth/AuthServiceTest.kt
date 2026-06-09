@@ -3,16 +3,15 @@ package app.xquare.xquareinfra.application.auth
 import app.xquare.xquareinfra.application.auth.ports.inbound.RegisterCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.outbound.AccessTokenPort
-import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.RefreshTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpProperties
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
-import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
-import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
-import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import app.xquare.xquareinfra.domain.user.User
+import app.xquare.xquareinfra.testFixtures.FakeEmailOtpPort
+import app.xquare.xquareinfra.testFixtures.FakeEmailSendPort
+import app.xquare.xquareinfra.testFixtures.FakePasswordEncoderPort
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -195,119 +194,4 @@ class AuthServiceTest {
 
         override fun extractUserId(refreshToken: String): Long = 1L
     }
-
-    private class FakePasswordEncoderPort : PasswordEncoderPort {
-        override fun encode(password: String): String = "encoded:$password"
-
-        override fun matches(
-            password: String,
-            encodedPassword: String,
-        ): Boolean = encodedPassword == "encoded:$password"
-    }
-
-    private class FakeEmailSendPort : EmailSendPort {
-        val sentEmails = mutableListOf<SentEmail>()
-
-        override fun send(
-            to: String,
-            subject: String,
-            body: String,
-        ) {
-            sentEmails += SentEmail(to = to, subject = subject)
-        }
-
-        override fun sendWithTemplate(
-            to: String,
-            subject: String,
-            templateName: String,
-            variables: Map<String, Any>,
-        ) {
-            sentEmails += SentEmail(to = to, subject = subject)
-        }
-    }
-
-    private class FakeEmailOtpPort : EmailOtpPort {
-        private val otps = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
-        private val otpFailures = mutableMapOf<Pair<EmailOtpPurpose, String>, Int>()
-        private val verifiedTokens = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
-
-        override fun saveOtp(
-            purpose: EmailOtpPurpose,
-            email: String,
-            otp: String,
-            ttlSeconds: Long,
-        ) {
-            otps[purpose to email] = otp
-            otpFailures.remove(purpose to email)
-        }
-
-        override fun getOtp(
-            purpose: EmailOtpPurpose,
-            email: String,
-        ): String? = otps[purpose to email]
-
-        override fun consumeOtp(
-            purpose: EmailOtpPurpose,
-            email: String,
-            otp: String,
-        ): OtpConsumeResult {
-            val key = purpose to email
-            val savedOtp = otps[key] ?: return OtpConsumeResult.NOT_FOUND
-            if (savedOtp != otp) {
-                return OtpConsumeResult.MISMATCH
-            }
-            otps.remove(key)
-            otpFailures.remove(key)
-            return OtpConsumeResult.CONSUMED
-        }
-
-        override fun recordOtpFailure(
-            purpose: EmailOtpPurpose,
-            email: String,
-            ttlSeconds: Long,
-            maxFailures: Int,
-        ) {
-            val key = purpose to email
-            val failures = (otpFailures[key] ?: 0) + 1
-            if (failures >= maxFailures) {
-                otps.remove(key)
-                otpFailures.remove(key)
-                return
-            }
-            otpFailures[key] = failures
-        }
-
-        override fun saveVerifiedToken(
-            purpose: EmailOtpPurpose,
-            token: String,
-            email: String,
-            ttlSeconds: Long,
-        ) {
-            verifiedTokens[purpose to token] = email
-        }
-
-        override fun consumeVerifiedToken(
-            purpose: EmailOtpPurpose,
-            token: String,
-            expectedEmail: String?,
-        ): String? {
-            val key = purpose to token
-            val email = verifiedTokens[key] ?: return null
-            if (expectedEmail != null && email != expectedEmail) {
-                return null
-            }
-            verifiedTokens.remove(key)
-            return email
-        }
-
-        fun hasVerifiedToken(
-            purpose: EmailOtpPurpose,
-            token: String,
-        ): Boolean = verifiedTokens.containsKey(purpose to token)
-    }
-
-    private data class SentEmail(
-        val to: String,
-        val subject: String,
-    )
 }

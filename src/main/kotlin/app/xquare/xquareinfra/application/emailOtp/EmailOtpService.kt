@@ -51,18 +51,10 @@ class EmailOtpService(
         otp: String,
         purpose: EmailOtpPurpose,
     ) {
-        when (emailOtpPort.consumeOtp(purpose, email, otp)) {
+        when (emailOtpPort.consumeOtp(purpose, email, otp, MAX_OTP_FAILURES)) {
             OtpConsumeResult.CONSUMED -> return
             OtpConsumeResult.NOT_FOUND -> throw AuthException.OtpNotFound
-            OtpConsumeResult.MISMATCH -> {
-                emailOtpPort.recordOtpFailure(
-                    purpose = purpose,
-                    email = email,
-                    ttlSeconds = emailOtpProperties.otpTtlSeconds,
-                    maxFailures = MAX_OTP_FAILURES,
-                )
-                throw AuthException.OtpMismatch
-            }
+            OtpConsumeResult.MISMATCH -> throw AuthException.OtpMismatch
         }
     }
 

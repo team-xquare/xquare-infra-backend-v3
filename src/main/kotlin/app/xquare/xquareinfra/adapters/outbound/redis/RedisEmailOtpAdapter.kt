@@ -23,28 +23,20 @@ class RedisEmailOtpAdapter(
                         return -1
                     end
                     if current ~= ARGV[1] then
+                        local failures = redis.call('INCR', KEYS[2])
+                        local ttl = redis.call('TTL', KEYS[1])
+                        if ttl > 0 then
+                            redis.call('EXPIRE', KEYS[2], ttl)
+                        end
+                        if failures >= tonumber(ARGV[2]) then
+                            redis.call('DEL', KEYS[1])
+                            redis.call('DEL', KEYS[2])
+                        end
                         return 0
                     end
                     redis.call('DEL', KEYS[1])
+                    redis.call('DEL', KEYS[2])
                     return 1
-                    """.trimIndent(),
-                )
-                resultType = Long::class.java
-            }
-        private val RECORD_OTP_FAILURE_SCRIPT =
-            DefaultRedisScript<Long>().apply {
-                setScriptText(
-                    """
-                    local failures = redis.call('INCR', KEYS[2])
-                    local ttl = tonumber(ARGV[1])
-                    if ttl > 0 then
-                        redis.call('EXPIRE', KEYS[2], ttl)
-                    end
-                    if failures >= tonumber(ARGV[2]) then
-                        redis.call('DEL', KEYS[1])
-                        redis.call('DEL', KEYS[2])
-                    end
-                    return failures
                     """.trimIndent(),
                 )
                 resultType = Long::class.java
@@ -107,12 +99,14 @@ class RedisEmailOtpAdapter(
         purpose: EmailOtpPurpose,
         email: String,
         otp: String,
+        maxFailures: Int,
     ): OtpConsumeResult {
         val result =
             redisTemplate.execute(
                 CONSUME_OTP_SCRIPT,
-                listOf(otpKey(purpose, email)),
+                listOf(otpKey(purpose, email), otpFailureKey(purpose, email)),
                 otp,
+                maxFailures.toString(),
             )
 
         return when (result) {
@@ -120,20 +114,6 @@ class RedisEmailOtpAdapter(
             0L -> OtpConsumeResult.MISMATCH
             else -> OtpConsumeResult.NOT_FOUND
         }
-    }
-
-    override fun recordOtpFailure(
-        purpose: EmailOtpPurpose,
-        email: String,
-        ttlSeconds: Long,
-        maxFailures: Int,
-    ) {
-        redisTemplate.execute(
-            RECORD_OTP_FAILURE_SCRIPT,
-            listOf(otpKey(purpose, email), otpFailureKey(purpose, email)),
-            ttlSeconds.toString(),
-            maxFailures.toString(),
-        )
     }
 
     override fun saveVerifiedToken(

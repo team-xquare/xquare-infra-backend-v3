@@ -19,14 +19,8 @@ interface EmailOtpPort {
         purpose: EmailOtpPurpose,
         email: String,
         otp: String,
-    ): OtpConsumeResult
-
-    fun recordOtpFailure(
-        purpose: EmailOtpPurpose,
-        email: String,
-        ttlSeconds: Long,
         maxFailures: Int,
-    )
+    ): OtpConsumeResult
 
     fun saveVerifiedToken(
         purpose: EmailOtpPurpose,
