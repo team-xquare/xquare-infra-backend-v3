@@ -7,6 +7,16 @@ jwt:
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRY:36000000} # 1 hour
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRY:604800000} # 7 days
 
+email-otp:
+  support-email: ${EMAIL_OTP_SUPPORT_EMAIL}
+  template-name: ${EMAIL_OTP_TEMPLATE_NAME:email/otp}
+  expires-in-text: "${EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
+  otp-ttl-seconds: ${EMAIL_OTP_TTL_SECONDS:300}
+  verified-token-ttl-seconds: ${EMAIL_OTP_VERIFIED_TOKEN_TTL_SECONDS:600}
+  register-subject: "${EMAIL_OTP_REGISTER_SUBJECT:[Xquare] 이메일 인증 코드}"
+  username-recovery-subject: "${EMAIL_OTP_USERNAME_RECOVERY_SUBJECT:[Xquare] 아이디 찾기 코드}"
+  password-reset-subject: "${EMAIL_OTP_PASSWORD_RESET_SUBJECT:[Xquare] 비밀번호 재설정 코드}"
+
 spring:
   thymeleaf:
     prefix: classpath:/templates/

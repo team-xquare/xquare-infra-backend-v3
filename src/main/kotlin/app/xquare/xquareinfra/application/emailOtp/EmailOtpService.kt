@@ -1,0 +1,95 @@
+package app.xquare.xquareinfra.application.emailOtp
+
+import app.xquare.xquareinfra.application.auth.AuthException
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
+import org.springframework.stereotype.Service
+import java.time.Year
+import java.security.SecureRandom
+import java.util.UUID
+
+@Service
+class EmailOtpService(
+    private val emailOtpPort: EmailOtpPort,
+    private val emailSendPort: EmailSendPort,
+    private val emailOtpProperties: EmailOtpProperties,
+) {
+    companion object {
+        private const val MAX_OTP_FAILURES = 5
+    }
+
+    private val secureRandom = SecureRandom()
+
+    fun sendOtp(
+        email: String,
+        purpose: EmailOtpPurpose,
+    ) {
+        val otp = generateCode()
+        emailOtpPort.saveOtp(
+            purpose = purpose,
+            email = email,
+            otp = otp,
+            ttlSeconds = emailOtpProperties.otpTtlSeconds,
+        )
+
+        emailSendPort.sendWithTemplate(
+            to = email,
+            subject = getSubject(purpose),
+            templateName = emailOtpProperties.templateName,
+            variables = mapOf(
+                "otp" to otp,
+                "expiresIn" to emailOtpProperties.expiresInText,
+                "supportEmail" to emailOtpProperties.supportEmail,
+                "year" to Year.now().value,
+            ),
+        )
+    }
+
+    fun verifyOtp(
+        email: String,
+        otp: String,
+        purpose: EmailOtpPurpose,
+    ) {
+        when (emailOtpPort.consumeOtp(purpose, email, otp, MAX_OTP_FAILURES)) {
+            OtpConsumeResult.CONSUMED -> return
+            OtpConsumeResult.NOT_FOUND -> throw AuthException.OtpNotFound
+            OtpConsumeResult.MISMATCH -> throw AuthException.OtpMismatch
+        }
+    }
+
+    fun verifyOtpAndIssueVerifiedToken(
+        email: String,
+        otp: String,
+        purpose: EmailOtpPurpose,
+    ): String {
+        verifyOtp(email, otp, purpose)
+
+        val verifiedToken = generateVerifiedToken()
+        emailOtpPort.saveVerifiedToken(
+            purpose = purpose,
+            token = verifiedToken,
+            email = email,
+            ttlSeconds = emailOtpProperties.verifiedTokenTtlSeconds,
+        )
+
+        return verifiedToken
+    }
+
+    fun consumeVerifiedEmail(
+        token: String,
+        purpose: EmailOtpPurpose,
+        expectedEmail: String? = null,
+    ): String? = emailOtpPort.consumeVerifiedToken(purpose, token, expectedEmail)
+
+    private fun getSubject(purpose: EmailOtpPurpose): String =
+        when (purpose) {
+            EmailOtpPurpose.REGISTER -> emailOtpProperties.registerSubject
+            EmailOtpPurpose.USERNAME_RECOVERY -> emailOtpProperties.usernameRecoverySubject
+            EmailOtpPurpose.PASSWORD_RESET -> emailOtpProperties.passwordResetSubject
+        }
+
+    private fun generateCode(): String = (secureRandom.nextInt(900000) + 100000).toString()
+
+    private fun generateVerifiedToken(): String = UUID.randomUUID().toString()
+}
