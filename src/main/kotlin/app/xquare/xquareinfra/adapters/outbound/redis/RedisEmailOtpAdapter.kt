@@ -86,6 +86,8 @@ class RedisEmailOtpAdapter(
             .digest(email.trim().lowercase().toByteArray())
             .joinToString("") { "%02x".format(it) }
 
+    private fun normalizeEmail(email: String): String = email.trim().lowercase()
+
     override fun saveOtp(
         email: String,
         otp: String,
@@ -157,7 +159,12 @@ class RedisEmailOtpAdapter(
         email: String,
         ttlSeconds: Long,
     ) {
-        redisTemplate.opsForValue().set(verifiedTokenKey(purpose, token), email, ttlSeconds, TimeUnit.SECONDS)
+        val storedEmail =
+            when (purpose) {
+                EmailOtpPurpose.REGISTER -> normalizeEmail(email)
+                else -> email
+            }
+        redisTemplate.opsForValue().set(verifiedTokenKey(purpose, token), storedEmail, ttlSeconds, TimeUnit.SECONDS)
     }
 
     override fun consumeVerifiedToken(
@@ -168,6 +175,9 @@ class RedisEmailOtpAdapter(
         redisTemplate.execute(
             CONSUME_VERIFIED_TOKEN_SCRIPT,
             listOf(verifiedTokenKey(purpose, token)),
-            expectedEmail.orEmpty(),
+            when (purpose) {
+                EmailOtpPurpose.REGISTER -> expectedEmail?.let(::normalizeEmail)
+                else -> expectedEmail
+            }.orEmpty(),
         )
 }
