@@ -76,8 +76,6 @@ class RedisEmailOtpAdapter(
 
     private fun legacyVerifiedTokenKey(token: String): String = "verifiedToken$token"
 
-    private fun legacyVerifiedLookupKey(token: String): String = "verified$token"
-
     private fun otpFailureKey(
         purpose: EmailOtpPurpose,
         email: String,
@@ -111,10 +109,10 @@ class RedisEmailOtpAdapter(
     }
 
     override fun getEmailByVerifiedToken(token: String): String? =
-        redisTemplate.opsForValue().get(legacyVerifiedLookupKey(token))
+        redisTemplate.opsForValue().get(legacyVerifiedTokenKey(token))
 
     override fun deleteVerifiedToken(token: String) {
-        redisTemplate.delete(legacyVerifiedLookupKey(token))
+        redisTemplate.delete(legacyVerifiedTokenKey(token))
     }
 
     override fun saveOtp(

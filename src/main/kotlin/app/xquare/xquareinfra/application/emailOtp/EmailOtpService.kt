@@ -39,6 +39,7 @@ class EmailOtpService(
             templateName = emailOtpProperties.templateName,
             variables = mapOf(
                 "otp" to otp,
+                "otpGuideText" to getGuideText(purpose),
                 "expiresIn" to emailOtpProperties.expiresInText,
                 "supportEmail" to emailOtpProperties.supportEmail,
                 "year" to Year.now().value,
@@ -87,6 +88,13 @@ class EmailOtpService(
             EmailOtpPurpose.REGISTER -> emailOtpProperties.registerSubject
             EmailOtpPurpose.USERNAME_RECOVERY -> emailOtpProperties.usernameRecoverySubject
             EmailOtpPurpose.PASSWORD_RESET -> emailOtpProperties.passwordResetSubject
+        }
+
+    private fun getGuideText(purpose: EmailOtpPurpose): String =
+        when (purpose) {
+            EmailOtpPurpose.REGISTER -> "회원가입을 완료하려면 아래 인증 코드를 입력해주세요."
+            EmailOtpPurpose.USERNAME_RECOVERY -> "아이디를 확인하려면 아래 인증 코드를 입력해주세요."
+            EmailOtpPurpose.PASSWORD_RESET -> "비밀번호를 재설정하려면 아래 인증 코드를 입력해주세요."
         }
 
     private fun generateCode(): String = (secureRandom.nextInt(900000) + 100000).toString()

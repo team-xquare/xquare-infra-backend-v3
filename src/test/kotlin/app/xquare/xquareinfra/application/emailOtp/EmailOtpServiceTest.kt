@@ -3,6 +3,7 @@ package app.xquare.xquareinfra.application.emailOtp
 import app.xquare.xquareinfra.application.auth.AuthException
 import app.xquare.xquareinfra.testFixtures.FakeEmailOtpPort
 import app.xquare.xquareinfra.testFixtures.FakeEmailSendPort
+import java.time.Year
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -20,6 +21,20 @@ class EmailOtpServiceTest {
         assertNotNull(fixture.emailOtpPort.getOtp(EmailOtpPurpose.USERNAME_RECOVERY, "user@test.com"))
         assertEquals("[Xquare] 이메일 인증 코드", fixture.emailSendPort.sentEmails[0].subject)
         assertEquals("[Xquare] 아이디 찾기 코드", fixture.emailSendPort.sentEmails[1].subject)
+    }
+
+    @Test
+    fun `sendOtp passes purpose specific template variables`() {
+        val fixture = createFixture()
+
+        fixture.emailOtpService.sendOtp("user@test.com", EmailOtpPurpose.PASSWORD_RESET)
+
+        val sentEmail = fixture.emailSendPort.sentEmails.single()
+        assertEquals("email/otp", sentEmail.templateName)
+        assertEquals("비밀번호를 재설정하려면 아래 인증 코드를 입력해주세요.", sentEmail.variables["otpGuideText"])
+        assertEquals("5분", sentEmail.variables["expiresIn"])
+        assertEquals("support@test.com", sentEmail.variables["supportEmail"])
+        assertEquals(Year.now().value, sentEmail.variables["year"])
     }
 
     @Test
