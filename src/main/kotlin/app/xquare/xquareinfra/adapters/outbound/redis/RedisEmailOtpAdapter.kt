@@ -5,7 +5,6 @@ import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort as SharedEmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
@@ -17,49 +16,9 @@ class RedisEmailOtpAdapter(
     SharedEmailOtpPort {
     companion object {
         private val CONSUME_OTP_SCRIPT =
-            DefaultRedisScript<Long>().apply {
-                setScriptText(
-                    """
-                    local current = redis.call('GET', KEYS[1])
-                    if not current then
-                        return -1
-                    end
-                    if current ~= ARGV[1] then
-                        local failures = redis.call('INCR', KEYS[2])
-                        local ttl = redis.call('TTL', KEYS[1])
-                        if ttl > 0 then
-                            redis.call('EXPIRE', KEYS[2], ttl)
-                        end
-                        if failures >= tonumber(ARGV[2]) then
-                            redis.call('DEL', KEYS[1])
-                            redis.call('DEL', KEYS[2])
-                        end
-                        return 0
-                    end
-                    redis.call('DEL', KEYS[1])
-                    redis.call('DEL', KEYS[2])
-                    return 1
-                    """.trimIndent(),
-                )
-                resultType = Long::class.java
-            }
+            RedisLuaScriptLoader.load("redis/scripts/consume-otp.lua", Long::class.java)
         private val CONSUME_VERIFIED_TOKEN_SCRIPT =
-            DefaultRedisScript<String>().apply {
-                setScriptText(
-                    """
-                    local current = redis.call('GET', KEYS[1])
-                    if not current then
-                        return nil
-                    end
-                    if ARGV[1] ~= '' and current ~= ARGV[1] then
-                        return nil
-                    end
-                    redis.call('DEL', KEYS[1])
-                    return current
-                    """.trimIndent(),
-                )
-                resultType = String::class.java
-            }
+            RedisLuaScriptLoader.load("redis/scripts/consume-verified-token.lua", String::class.java)
     }
 
     private fun otpKey(

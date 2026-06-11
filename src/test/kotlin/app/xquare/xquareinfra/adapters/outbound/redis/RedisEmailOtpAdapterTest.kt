@@ -4,6 +4,7 @@ import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -14,6 +15,16 @@ import org.springframework.data.redis.core.script.DefaultRedisScript
 import java.util.concurrent.TimeUnit
 
 class RedisEmailOtpAdapterTest {
+    @Test
+    fun `lua scripts are loaded from classpath resources`() {
+        val consumeOtpScript = RedisLuaScriptLoader.load("redis/scripts/consume-otp.lua", Long::class.java)
+        val consumeVerifiedTokenScript =
+            RedisLuaScriptLoader.load("redis/scripts/consume-verified-token.lua", String::class.java)
+
+        assertTrue(consumeOtpScript.scriptAsString.contains("local current = redis.call('GET', KEYS[1])"))
+        assertTrue(consumeVerifiedTokenScript.scriptAsString.contains("if ARGV[1] ~= '' and current ~= ARGV[1] then"))
+    }
+
     @Test
     fun `legacy verified token operations use the same key`() {
         val redisTemplate = mock(StringRedisTemplate::class.java)
