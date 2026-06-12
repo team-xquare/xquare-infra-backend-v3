@@ -1,0 +1,83 @@
+cors:
+  allowedOrigins:
+    - ${TEST_CORS_ALLOWED_ORIGIN:http://localhost:3000}
+
+jwt:
+  secret: ${TEST_JWT_SECRET:asdfasdfasdfasdfasdfasdfasdfasdf}
+  access-token-expiration: ${TEST_JWT_ACCESS_TOKEN_EXPIRATION:36000000}
+  refresh-token-expiration: ${TEST_JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+
+email-otp:
+  support-email: ${TEST_EMAIL_OTP_SUPPORT_EMAIL:support@test.com}
+  template-name: ${TEST_EMAIL_OTP_TEMPLATE_NAME:email/otp}
+  expires-in-text: "${TEST_EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
+  otp-ttl-seconds: ${TEST_EMAIL_OTP_TTL_SECONDS:300}
+  verified-token-ttl-seconds: ${TEST_EMAIL_OTP_VERIFIED_TOKEN_TTL_SECONDS:600}
+  register-subject: "${TEST_EMAIL_OTP_REGISTER_SUBJECT:[Xquare] 이메일 인증 코드}"
+  username-recovery-subject: "${TEST_EMAIL_OTP_USERNAME_RECOVERY_SUBJECT:[Xquare] 아이디 찾기 코드}"
+  password-reset-subject: "${TEST_EMAIL_OTP_PASSWORD_RESET_SUBJECT:[Xquare] 비밀번호 재설정 코드}"
+
+spring:
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST:localhost}
+      port: ${TEST_REDIS_PORT:6379}
+
+  datasource:
+    url: ${TEST_DATASOURCE_URL:jdbc:h2:mem:xquare-infra;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false}
+    username: ${TEST_DATASOURCE_USERNAME:sa}
+    password: ${TEST_DATASOURCE_PASSWORD:}
+    driver-class-name: ${TEST_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${TEST_JPA_DDL_AUTO:create-drop}
+    show-sql: ${TEST_JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: ${TEST_JPA_FORMAT_SQL:false}
+    database-platform: ${TEST_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
+
+  mail:
+    host: ${TEST_MAIL_HOST:localhost}
+    port: ${TEST_MAIL_PORT:2525}
+    username: ${TEST_MAIL_USERNAME:test}
+    password: ${TEST_MAIL_PASSWORD:test}
+    properties:
+      mail.smtp.auth: ${TEST_MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${TEST_MAIL_SMTP_STARTTLS_ENABLE:true}
+      mail.smtp.starttls.required: ${TEST_MAIL_SMTP_STARTTLS_REQUIRED:true}
+
+okhttp:
+  cache-dir: ${TEST_OKHTTP_CACHE_DIR:/tmp/xquare-okhttp-test}
+  cache-size-mb: ${TEST_OKHTTP_CACHE_SIZE_MB:10}
+
+github-app:
+  client-id: ${TEST_GITHUB_APP_CLIENT_ID:test-client-id}
+  client-secret: ${TEST_GITHUB_APP_CLIENT_SECRET:test-client-secret}
+  redirect-uri: ${TEST_GITHUB_APP_REDIRECT_URI:http://localhost:8080/callback}
+
+gitops:
+  token: ${TEST_GITOPS_TOKEN:test-gitops-token}
+  owner: ${TEST_GITOPS_REPO_OWNER:test-owner}
+  repo: ${TEST_GITOPS_REPO_NAME:test-repo}
+  branch: ${TEST_GITOPS_REPO_BRANCH:main}
+
+argo-workflows:
+  url: ${TEST_ARGO_WORKFLOWS_URL:http://localhost:2746}
+  token: ${TEST_ARGO_WORKFLOWS_TOKEN:test-argo-token}
+
+vault:
+  url: ${TEST_VAULT_URL:http://localhost:8200}
+  token: ${TEST_VAULT_TOKEN:test-vault-token}
+  mount: ${TEST_VAULT_MOUNT:secret}
+
+swagger:
+  user: ${TEST_SWAGGER_USER:test-user}
+  password: ${TEST_SWAGGER_PASSWORD:test-password}
+
+s3:
+  access-key: ${TEST_S3_ACCESS_KEY:test-access-key}
+  secret-key: ${TEST_S3_SECRET_KEY:test-secret-key}
+  region: ${TEST_S3_REGION:ap-northeast-2}
+  bucket: ${TEST_S3_BUCKET:test-bucket}
