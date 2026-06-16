@@ -22,7 +22,6 @@ class ApiSecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource) }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/*/auth/**").permitAll()
-                it.requestMatchers("/api/*/account-recovery/**").permitAll()
                 it.requestMatchers("/api/*/github/**").permitAll()
                 it.requestMatchers("/api/**").authenticated()
                 it.anyRequest().permitAll()
