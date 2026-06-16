@@ -1,12 +1,20 @@
 package app.xquare.xquareinfra.application.accountRecovery
 
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordUseCase
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpUseCase
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpUseCase
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpResult
+import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpUseCase
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpCommand
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpResult
 import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpUseCase
 import app.xquare.xquareinfra.application.accountRecovery.ports.outbound.UserPersistenceForAccountRecoveryPort
 import app.xquare.xquareinfra.application.auth.AuthException
+import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
 import app.xquare.xquareinfra.domain.user.User
@@ -17,8 +25,12 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AccountRecoveryService(
     private val userPersistencePort: UserPersistenceForAccountRecoveryPort,
+    private val passwordEncoderPort: PasswordEncoderPort,
     private val emailOtpService: EmailOtpService,
 ) : SendUsernameFindOtpUseCase,
+    SendPasswordResetOtpUseCase,
+    VerifyPasswordResetOtpUseCase,
+    ResetPasswordUseCase,
     VerifyUsernameFindOtpUseCase {
     override fun sendUsernameFindOtp(command: SendUsernameFindOtpCommand) {
         val user = userPersistencePort.findByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
@@ -38,11 +50,59 @@ class AccountRecoveryService(
         return VerifyUsernameFindOtpResult(username = user.username)
     }
 
+    override fun sendPasswordResetOtp(command: SendPasswordResetOtpCommand) {
+        val user =
+            userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(
+                command.username,
+                command.studentNumber,
+                command.name,
+                command.email,
+            ) ?: return
+        emailOtpService.sendOtp(user.email, EmailOtpPurpose.PASSWORD_RESET)
+    }
+
+    override fun verifyPasswordResetOtp(command: VerifyPasswordResetOtpCommand): VerifyPasswordResetOtpResult {
+        getUserByUsernameAndStudentNumberAndNameAndEmail(
+            command.username,
+            command.studentNumber,
+            command.name,
+            command.email,
+        )
+
+        val passwordResetToken =
+            emailOtpService.verifyOtpAndIssueVerifiedToken(
+                email = command.email,
+                otp = command.otp,
+                purpose = EmailOtpPurpose.PASSWORD_RESET,
+            )
+
+        return VerifyPasswordResetOtpResult(passwordResetToken = passwordResetToken)
+    }
+
+    override fun resetPassword(command: ResetPasswordCommand) {
+        val email =
+            emailOtpService.consumeVerifiedEmail(command.passwordResetToken, EmailOtpPurpose.PASSWORD_RESET)
+                ?: throw AuthException.PasswordResetTokenNotFound
+        val user = userPersistencePort.findByEmail(email) ?: throw AuthException.PasswordResetTokenNotFound
+        val encodedPassword = passwordEncoderPort.encode(command.newPassword)
+
+        userPersistencePort.save(user.copy(password = encodedPassword))
+    }
+
     private fun getUserByStudentNumberAndNameAndEmail(
         studentNumber: Int,
         name: String,
         email: String,
     ): User =
         userPersistencePort.findByStudentNumberAndNameAndEmail(studentNumber, name, email).singleOrNull()
+            ?: throw AuthException.InvalidUserInfo
+
+    private fun getUserByUsernameAndStudentNumberAndNameAndEmail(
+        username: String,
+        studentNumber: Int,
+        name: String,
+        email: String,
+    ): User =
+        userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(username, studentNumber, name, email)
             ?: throw AuthException.InvalidUserInfo
 }
