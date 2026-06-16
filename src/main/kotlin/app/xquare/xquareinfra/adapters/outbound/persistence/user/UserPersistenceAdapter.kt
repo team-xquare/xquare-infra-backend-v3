@@ -22,6 +22,8 @@ class UserPersistenceAdapter(
     UserPersistenceForNoticePort {
     override fun existsByUsername(username: String): Boolean = userRepository.existsByUsername(username)
 
+    override fun existsByEmail(email: String): Boolean = userRepository.existsByEmail(email)
+
     override fun save(user: User): User {
         val entity = user.toPersistence()
         val savedEntity = userRepository.save(entity)
