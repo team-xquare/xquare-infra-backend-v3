@@ -10,6 +10,12 @@ object AuthExceptionMapper {
             is AuthException.UsernameAlreadyExists ->
                 ResponseEntity.badRequest().body(AuthErrorCode.USERNAME_ALREADY_EXISTS.toWrappedDto())
 
+            is AuthException.EmailAlreadyExists ->
+                ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_ALREADY_EXISTS.toWrappedDto())
+
+            is AuthException.InvalidUserInfo ->
+                ResponseEntity.badRequest().body(AuthErrorCode.INVALID_USER_INFO.toWrappedDto())
+
             is AuthException.InvalidCredentials ->
                 ResponseEntity.badRequest().body(AuthErrorCode.INVALID_CREDENTIALS.toWrappedDto())
 
@@ -24,5 +30,8 @@ object AuthExceptionMapper {
 
             is AuthException.EmailNotVerified ->
                 ResponseEntity.badRequest().body(AuthErrorCode.EMAIL_NOT_VERIFIED.toWrappedDto())
+
+            is AuthException.PasswordResetTokenNotFound ->
+                ResponseEntity.badRequest().body(AuthErrorCode.PASSWORD_RESET_TOKEN_NOT_FOUND.toWrappedDto())
         }
 }
