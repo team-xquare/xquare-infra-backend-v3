@@ -26,6 +26,10 @@ class EmailOtpService(
         purpose: EmailOtpPurpose,
         recipientEmail: String? = email,
     ) {
+        if (recipientEmail == null) {
+            return
+        }
+
         val permitted =
             emailOtpPort.tryAcquireSendPermit(
                 purpose = purpose,
@@ -35,9 +39,6 @@ class EmailOtpService(
             )
         if (!permitted) {
             throw AuthException.OtpRateLimitExceeded
-        }
-        if (recipientEmail == null) {
-            return
         }
 
         val otp = generateCode()

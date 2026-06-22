@@ -52,6 +52,27 @@ class EmailOtpServiceTest {
     }
 
     @Test
+    fun `sendOtp does not consume rate limit when recipient is missing`() {
+        val fixture = createFixture()
+
+        repeat(3) {
+            fixture.emailOtpService.sendOtp(
+                email = "user@test.com",
+                purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+                recipientEmail = null,
+            )
+        }
+        repeat(3) {
+            fixture.emailOtpService.sendOtp(
+                email = "user@test.com",
+                purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+            )
+        }
+
+        assertEquals(3, fixture.emailSendPort.sentEmails.size)
+    }
+
+    @Test
     fun `verifying otp with wrong purpose fails`() {
         val fixture = createFixture()
         fixture.emailOtpPort.saveOtp(

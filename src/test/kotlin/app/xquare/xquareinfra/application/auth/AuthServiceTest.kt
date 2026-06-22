@@ -225,7 +225,7 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `recovery otp send endpoints rate limit existing and unknown identities equally`() {
+    fun `unknown recovery identities do not consume valid recipient rate limit`() {
         val fixture = createFixture()
         fixture.userPersistencePort.save(existingUser())
 
@@ -239,7 +239,7 @@ class AuthServiceTest {
             )
             fixture.authService.sendPasswordResetOtp(
                 SendPasswordResetOtpCommand(
-                    username = "tester",
+                    username = "unknown-user",
                     studentNumber = 1101,
                     name = "테스터",
                     email = "User@Test.com",
@@ -247,7 +247,7 @@ class AuthServiceTest {
             )
         }
 
-        assertThrows<AuthException.OtpRateLimitExceeded> {
+        repeat(3) {
             fixture.authService.sendUsernameFindOtp(
                 SendUsernameFindOtpCommand(
                     studentNumber = 1101,
@@ -255,18 +255,17 @@ class AuthServiceTest {
                     email = "user@test.com",
                 ),
             )
-        }
-        assertThrows<AuthException.OtpRateLimitExceeded> {
             fixture.authService.sendPasswordResetOtp(
                 SendPasswordResetOtpCommand(
-                    username = "unknown-user",
+                    username = "tester",
                     studentNumber = 1101,
                     name = "테스터",
                     email = "user@test.com",
                 ),
             )
         }
-        assertEquals(3, fixture.emailSendPort.sentEmails.size)
+
+        assertEquals(6, fixture.emailSendPort.sentEmails.size)
     }
 
     @Test
