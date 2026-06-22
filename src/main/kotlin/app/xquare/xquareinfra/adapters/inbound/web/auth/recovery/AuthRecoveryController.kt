@@ -1,22 +1,22 @@
-package app.xquare.xquareinfra.adapters.inbound.web.accountRecovery
+package app.xquare.xquareinfra.adapters.inbound.web.auth.recovery
 
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.PasswordResetTokenResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.ResetPasswordRequestDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.SendPasswordResetOtpRequestDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.SendUsernameFindOtpRequestDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.UsernameResponseDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.VerifyPasswordResetOtpRequestDto
-import app.xquare.xquareinfra.adapters.inbound.web.accountRecovery.dtos.VerifyUsernameFindOtpRequestDto
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordCommand
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.ResetPasswordUseCase
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpCommand
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendPasswordResetOtpUseCase
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpCommand
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.SendUsernameFindOtpUseCase
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpCommand
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyPasswordResetOtpUseCase
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpCommand
-import app.xquare.xquareinfra.application.accountRecovery.ports.inbound.VerifyUsernameFindOtpUseCase
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.PasswordResetTokenResponseDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.ResetPasswordRequestDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.SendPasswordResetOtpRequestDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.SendUsernameFindOtpRequestDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.UsernameResponseDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.VerifyPasswordResetOtpRequestDto
+import app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos.VerifyUsernameFindOtpRequestDto
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.ResetPasswordCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.ResetPasswordUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendPasswordResetOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendUsernameFindOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyPasswordResetOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUsernameFindOtpUseCase
 import app.xquare.xquareinfra.infrastructure.web.dto.APiWrappedResponseDto
 import app.xquare.xquareinfra.infrastructure.web.dto.toWrappedDto
 import io.swagger.v3.oas.annotations.Operation
@@ -29,11 +29,11 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@Tag(name = "Account Recovery")
+@Tag(name = "Auth Recovery")
 @SecurityRequirements
 @RestController
-@RequestMapping("/api/v1/account-recovery")
-class AccountRecoveryController(
+@RequestMapping("/api/v1/auth/recovery")
+class AuthRecoveryController(
     private val sendUsernameFindOtpUseCase: SendUsernameFindOtpUseCase,
     private val verifyUsernameFindOtpUseCase: VerifyUsernameFindOtpUseCase,
     private val sendPasswordResetOtpUseCase: SendPasswordResetOtpUseCase,

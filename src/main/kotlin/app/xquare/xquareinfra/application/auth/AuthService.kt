@@ -14,6 +14,18 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.SendEmailOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpCommand
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpResult
 import app.xquare.xquareinfra.application.auth.ports.inbound.VerifyEmailOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.ResetPasswordCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.ResetPasswordUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendPasswordResetOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.SendUsernameFindOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyPasswordResetOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyPasswordResetOtpResult
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyPasswordResetOtpUseCase
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUsernameFindOtpCommand
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUsernameFindOtpResult
+import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUsernameFindOtpUseCase
 import app.xquare.xquareinfra.application.auth.ports.outbound.AccessTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.PasswordEncoderPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.RefreshTokenPort
@@ -37,7 +49,12 @@ class AuthService(
     LoginUseCase,
     RefreshTokenUseCase,
     SendEmailOtpUseCase,
-    VerifyEmailOtpUseCase {
+    VerifyEmailOtpUseCase,
+    SendUsernameFindOtpUseCase,
+    VerifyUsernameFindOtpUseCase,
+    SendPasswordResetOtpUseCase,
+    VerifyPasswordResetOtpUseCase,
+    ResetPasswordUseCase {
     override fun register(command: RegisterCommand): RegisterResult {
         emailOtpService.consumeVerifiedEmail(
             command.emailVerifiedToken,
@@ -114,4 +131,80 @@ class AuthService(
             refreshToken = newRefreshToken,
         )
     }
+
+    override fun sendUsernameFindOtp(command: SendUsernameFindOtpCommand) {
+        val user = userPersistencePort.findByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+            .singleOrNull()
+            ?: return
+
+        emailOtpService.sendOtp(user.email, EmailOtpPurpose.USERNAME_RECOVERY)
+    }
+
+    override fun verifyUsernameFindOtp(command: VerifyUsernameFindOtpCommand): VerifyUsernameFindOtpResult {
+        val user = getUserByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+        emailOtpService.verifyOtp(
+            email = command.email,
+            otp = command.otp,
+            purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+        )
+
+        return VerifyUsernameFindOtpResult(username = user.username)
+    }
+
+    override fun sendPasswordResetOtp(command: SendPasswordResetOtpCommand) {
+        val user =
+            userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(
+                command.username,
+                command.studentNumber,
+                command.name,
+                command.email,
+            ) ?: return
+
+        emailOtpService.sendOtp(user.email, EmailOtpPurpose.PASSWORD_RESET)
+    }
+
+    override fun verifyPasswordResetOtp(command: VerifyPasswordResetOtpCommand): VerifyPasswordResetOtpResult {
+        getUserByUsernameAndStudentNumberAndNameAndEmail(
+            command.username,
+            command.studentNumber,
+            command.name,
+            command.email,
+        )
+
+        val passwordResetToken =
+            emailOtpService.verifyOtpAndIssueVerifiedToken(
+                email = command.email,
+                otp = command.otp,
+                purpose = EmailOtpPurpose.PASSWORD_RESET,
+            )
+
+        return VerifyPasswordResetOtpResult(passwordResetToken = passwordResetToken)
+    }
+
+    override fun resetPassword(command: ResetPasswordCommand) {
+        val email =
+            emailOtpService.consumeVerifiedEmail(command.passwordResetToken, EmailOtpPurpose.PASSWORD_RESET)
+                ?: throw AuthException.PasswordResetTokenNotFound
+        val user = userPersistencePort.findByEmail(email) ?: throw AuthException.PasswordResetTokenNotFound
+        val encodedPassword = passwordEncoderPort.encode(command.newPassword)
+
+        userPersistencePort.save(user.copy(password = encodedPassword))
+    }
+
+    private fun getUserByStudentNumberAndNameAndEmail(
+        studentNumber: Int,
+        name: String,
+        email: String,
+    ): User =
+        userPersistencePort.findByStudentNumberAndNameAndEmail(studentNumber, name, email).singleOrNull()
+            ?: throw AuthException.InvalidUserInfo
+
+    private fun getUserByUsernameAndStudentNumberAndNameAndEmail(
+        username: String,
+        studentNumber: Int,
+        name: String,
+        email: String,
+    ): User =
+        userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(username, studentNumber, name, email)
+            ?: throw AuthException.InvalidUserInfo
 }

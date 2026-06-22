@@ -1,4 +1,4 @@
-package app.xquare.xquareinfra.application.accountRecovery.ports.inbound
+package app.xquare.xquareinfra.application.auth.ports.inbound.recovery
 
 interface VerifyPasswordResetOtpUseCase {
     fun verifyPasswordResetOtp(command: VerifyPasswordResetOtpCommand): VerifyPasswordResetOtpResult

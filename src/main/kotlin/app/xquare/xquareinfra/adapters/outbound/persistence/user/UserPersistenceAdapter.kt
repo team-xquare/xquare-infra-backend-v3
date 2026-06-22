@@ -3,7 +3,6 @@ package app.xquare.xquareinfra.adapters.outbound.persistence.user
 import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toDomain
 import app.xquare.xquareinfra.adapters.outbound.persistence.user.mappers.toPersistence
 import app.xquare.xquareinfra.application.application.ports.outbound.UserPersistenceForApplicationPort
-import app.xquare.xquareinfra.application.accountRecovery.ports.outbound.UserPersistenceForAccountRecoveryPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
 import app.xquare.xquareinfra.application.notice.ports.outbound.UserPersistenceForNoticePort
 import app.xquare.xquareinfra.application.team.ports.outbound.UserPersistenceForTeamPort
@@ -17,7 +16,6 @@ import kotlin.jvm.optionals.getOrNull
 class UserPersistenceAdapter(
     private val userRepository: UserRepository,
 ) : UserPersistenceForAuthPort,
-    UserPersistenceForAccountRecoveryPort,
     UserPersistenceForUserPort,
     UserPersistenceForTeamPort,
     UserPersistenceForApplicationPort,
