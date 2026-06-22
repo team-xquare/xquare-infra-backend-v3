@@ -9,6 +9,8 @@ data class EmailOtpProperties(
     val expiresInText: String,
     val otpTtlSeconds: Long,
     val verifiedTokenTtlSeconds: Long,
+    val sendRateLimitMaxRequests: Int,
+    val sendRateLimitWindowSeconds: Long,
     val registerSubject: String,
     val usernameRecoverySubject: String,
     val passwordResetSubject: String,

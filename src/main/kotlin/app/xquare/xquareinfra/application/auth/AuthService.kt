@@ -72,14 +72,15 @@ class AuthService(
         }
 
         val encodedPassword = passwordEncoderPort.encode(command.password)
-        val user = User(
-            username = command.username,
-            password = encodedPassword,
-            role = UserRole.MEMBER,
-            studentNumber = command.studentNumber,
-            name = command.name,
-            email = command.email,
-        )
+        val user =
+            User(
+                username = command.username,
+                password = encodedPassword,
+                role = UserRole.MEMBER,
+                studentNumber = command.studentNumber,
+                name = command.name,
+                email = command.email,
+            )
 
         val savedUser = userPersistencePort.save(user)
         val accessToken = accessTokenPort.create(savedUser.id!!)
@@ -102,8 +103,9 @@ class AuthService(
     }
 
     override fun login(command: LoginCommand): LoginResult {
-        val user = userPersistencePort.findByUsername(command.username)
-            ?: throw AuthException.InvalidCredentials
+        val user =
+            userPersistencePort.findByUsername(command.username)
+                ?: throw AuthException.InvalidCredentials
 
         if (!passwordEncoderPort.matches(command.password, user.password)) {
             throw AuthException.InvalidCredentials
@@ -120,8 +122,9 @@ class AuthService(
             throw AuthException.InvalidRefreshToken
         }
 
-        val userId = refreshTokenPort.extractUserId(command.refreshToken)
-            ?: throw AuthException.InvalidRefreshToken
+        val userId =
+            refreshTokenPort.extractUserId(command.refreshToken)
+                ?: throw AuthException.InvalidRefreshToken
 
         val newAccessToken = accessTokenPort.create(userId)
         val newRefreshToken = refreshTokenPort.create(userId)
@@ -133,23 +136,29 @@ class AuthService(
     }
 
     override fun sendUsernameFindOtp(command: SendUsernameFindOtpCommand) {
-        val user = userPersistencePort.findByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
-            .singleOrNull()
-            ?: return
+        val user =
+            userPersistencePort
+                .findByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+                .singleOrNull()
 
-        emailOtpService.sendOtp(user.email, EmailOtpPurpose.USERNAME_RECOVERY)
-    }
-
-    override fun verifyUsernameFindOtp(command: VerifyUsernameFindOtpCommand): VerifyUsernameFindOtpResult {
-        val user = getUserByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
-        emailOtpService.verifyOtp(
+        emailOtpService.sendOtp(
             email = command.email,
-            otp = command.otp,
             purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+            recipientEmail = user?.email,
         )
-
-        return VerifyUsernameFindOtpResult(username = user.username)
     }
+
+    override fun verifyUsernameFindOtp(command: VerifyUsernameFindOtpCommand): VerifyUsernameFindOtpResult =
+        withUnifiedRecoveryFailure {
+            val user = getUserByStudentNumberAndNameAndEmail(command.studentNumber, command.name, command.email)
+            emailOtpService.verifyOtp(
+                email = user.email,
+                otp = command.otp,
+                purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+            )
+
+            VerifyUsernameFindOtpResult(username = user.username)
+        }
 
     override fun sendPasswordResetOtp(command: SendPasswordResetOtpCommand) {
         val user =
@@ -158,28 +167,34 @@ class AuthService(
                 command.studentNumber,
                 command.name,
                 command.email,
-            ) ?: return
-
-        emailOtpService.sendOtp(user.email, EmailOtpPurpose.PASSWORD_RESET)
-    }
-
-    override fun verifyPasswordResetOtp(command: VerifyPasswordResetOtpCommand): VerifyPasswordResetOtpResult {
-        getUserByUsernameAndStudentNumberAndNameAndEmail(
-            command.username,
-            command.studentNumber,
-            command.name,
-            command.email,
-        )
-
-        val passwordResetToken =
-            emailOtpService.verifyOtpAndIssueVerifiedToken(
-                email = command.email,
-                otp = command.otp,
-                purpose = EmailOtpPurpose.PASSWORD_RESET,
             )
 
-        return VerifyPasswordResetOtpResult(passwordResetToken = passwordResetToken)
+        emailOtpService.sendOtp(
+            email = command.email,
+            purpose = EmailOtpPurpose.PASSWORD_RESET,
+            recipientEmail = user?.email,
+        )
     }
+
+    override fun verifyPasswordResetOtp(command: VerifyPasswordResetOtpCommand): VerifyPasswordResetOtpResult =
+        withUnifiedRecoveryFailure {
+            val user =
+                getUserByUsernameAndStudentNumberAndNameAndEmail(
+                    command.username,
+                    command.studentNumber,
+                    command.name,
+                    command.email,
+                )
+
+            val passwordResetToken =
+                emailOtpService.verifyOtpAndIssueVerifiedToken(
+                    email = user.email,
+                    otp = command.otp,
+                    purpose = EmailOtpPurpose.PASSWORD_RESET,
+                )
+
+            VerifyPasswordResetOtpResult(passwordResetToken = passwordResetToken)
+        }
 
     override fun resetPassword(command: ResetPasswordCommand) {
         val email =
@@ -207,4 +222,18 @@ class AuthService(
     ): User =
         userPersistencePort.findByUsernameAndStudentNumberAndNameAndEmail(username, studentNumber, name, email)
             ?: throw AuthException.InvalidUserInfo
+
+    private fun <T> withUnifiedRecoveryFailure(block: () -> T): T =
+        try {
+            block()
+        } catch (ex: AuthException) {
+            when (ex) {
+                AuthException.InvalidUserInfo,
+                AuthException.OtpMismatch,
+                AuthException.OtpNotFound,
+                -> throw AuthException.InvalidUserInfo
+
+                else -> throw ex
+            }
+        }
 }

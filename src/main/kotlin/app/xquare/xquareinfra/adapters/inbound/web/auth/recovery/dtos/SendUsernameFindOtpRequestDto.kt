@@ -3,6 +3,7 @@ package app.xquare.xquareinfra.adapters.inbound.web.auth.recovery.dtos
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
 data class SendUsernameFindOtpRequestDto(
@@ -10,9 +11,11 @@ data class SendUsernameFindOtpRequestDto(
     @field:Max(3999)
     val studentNumber: Int,
     @field:Pattern(
-        regexp = "^[가-힣]+$",
+        regexp = "^[A-Za-z가-힣]+(?:[ -][A-Za-z가-힣]+)*$",
     )
+    @field:NotBlank
     val name: String,
     @field:Email
+    @field:NotBlank
     val email: String,
 )

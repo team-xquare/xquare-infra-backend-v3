@@ -12,10 +12,12 @@ data class VerifyUsernameFindOtpRequestDto(
     @field:Max(3999)
     val studentNumber: Int,
     @field:Pattern(
-        regexp = "^[가-힣]+$",
+        regexp = "^[A-Za-z가-힣]+(?:[ -][A-Za-z가-힣]+)*$",
     )
+    @field:NotBlank
     val name: String,
     @field:Email
+    @field:NotBlank
     val email: String,
     @field:Pattern(regexp = "^\\d{6}$")
     @field:Size(min = 6, max = 6)

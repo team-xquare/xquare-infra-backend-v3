@@ -8,19 +8,19 @@ import org.springframework.stereotype.Repository
 interface UserRepository : JpaRepository<UserPersistenceEntity, Long> {
     fun existsByUsername(username: String): Boolean
 
-    fun existsByEmail(email: String): Boolean
+    fun existsByEmailIgnoreCase(email: String): Boolean
 
     fun findByUsername(username: String): UserPersistenceEntity?
 
-    fun findByEmail(email: String): UserPersistenceEntity?
+    fun findByEmailIgnoreCase(email: String): UserPersistenceEntity?
 
-    fun findByStudentNumberAndNameAndEmailIgnoreCase(
+    fun findByStudentNumberAndNameIgnoreCaseAndEmailIgnoreCase(
         studentNumber: Int,
         name: String,
         email: String,
     ): List<UserPersistenceEntity>
 
-    fun findByUsernameAndStudentNumberAndNameAndEmailIgnoreCase(
+    fun findByUsernameAndStudentNumberAndNameIgnoreCaseAndEmailIgnoreCase(
         username: String,
         studentNumber: Int,
         name: String,

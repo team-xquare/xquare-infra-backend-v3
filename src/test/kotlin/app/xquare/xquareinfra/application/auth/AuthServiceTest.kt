@@ -10,18 +10,18 @@ import app.xquare.xquareinfra.application.auth.ports.inbound.recovery.VerifyUser
 import app.xquare.xquareinfra.application.auth.ports.outbound.AccessTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.RefreshTokenPort
 import app.xquare.xquareinfra.application.auth.ports.outbound.UserPersistenceForAuthPort
-import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpProperties
+import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpService
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.testFixtures.FakeEmailOtpPort
 import app.xquare.xquareinfra.testFixtures.FakeEmailSendPort
 import app.xquare.xquareinfra.testFixtures.FakePasswordEncoderPort
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import org.junit.jupiter.api.assertThrows
 
 class AuthServiceTest {
     @Test
@@ -225,7 +225,52 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `account recovery lookups ignore email case`() {
+    fun `recovery otp send endpoints rate limit existing and unknown identities equally`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+
+        repeat(3) {
+            fixture.authService.sendUsernameFindOtp(
+                SendUsernameFindOtpCommand(
+                    studentNumber = 1102,
+                    name = "테스터",
+                    email = "User@Test.com",
+                ),
+            )
+            fixture.authService.sendPasswordResetOtp(
+                SendPasswordResetOtpCommand(
+                    username = "tester",
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "User@Test.com",
+                ),
+            )
+        }
+
+        assertThrows<AuthException.OtpRateLimitExceeded> {
+            fixture.authService.sendUsernameFindOtp(
+                SendUsernameFindOtpCommand(
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "user@test.com",
+                ),
+            )
+        }
+        assertThrows<AuthException.OtpRateLimitExceeded> {
+            fixture.authService.sendPasswordResetOtp(
+                SendPasswordResetOtpCommand(
+                    username = "unknown-user",
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "user@test.com",
+                ),
+            )
+        }
+        assertEquals(3, fixture.emailSendPort.sentEmails.size)
+    }
+
+    @Test
+    fun `account recovery flow ignores email case end to end`() {
         val fixture = createFixture()
         fixture.userPersistencePort.save(existingUser())
 
@@ -236,6 +281,19 @@ class AuthServiceTest {
                 email = "USER@Test.com",
             ),
         )
+        val usernameOtp =
+            fixture.emailOtpPort.getOtp(EmailOtpPurpose.USERNAME_RECOVERY, "user@test.com")
+                ?: error("username recovery otp was not saved")
+        val usernameResult =
+            fixture.authService.verifyUsernameFindOtp(
+                VerifyUsernameFindOtpCommand(
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "User@Test.com",
+                    otp = usernameOtp,
+                ),
+            )
+
         fixture.authService.sendPasswordResetOtp(
             SendPasswordResetOtpCommand(
                 username = "tester",
@@ -244,8 +302,62 @@ class AuthServiceTest {
                 email = "USER@Test.com",
             ),
         )
+        val passwordOtp =
+            fixture.emailOtpPort.getOtp(EmailOtpPurpose.PASSWORD_RESET, "user@test.com")
+                ?: error("password reset otp was not saved")
+        val passwordResult =
+            fixture.authService.verifyPasswordResetOtp(
+                VerifyPasswordResetOtpCommand(
+                    username = "tester",
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "User@Test.com",
+                    otp = passwordOtp,
+                ),
+            )
+        fixture.authService.resetPassword(
+            ResetPasswordCommand(
+                passwordResetToken = passwordResult.passwordResetToken,
+                newPassword = "new-password!",
+            ),
+        )
 
         assertEquals(2, fixture.emailSendPort.sentEmails.size)
+        assertEquals("tester", usernameResult.username)
+        assertEquals("encoded:new-password!", fixture.userPersistencePort.findByEmail("USER@Test.com")?.password)
+    }
+
+    @Test
+    fun `username recovery verification hides whether identity or otp failed`() {
+        val fixture = createFixture()
+        fixture.userPersistencePort.save(existingUser())
+        fixture.emailOtpPort.saveOtp(
+            purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+            email = "user@test.com",
+            otp = "123456",
+            ttlSeconds = 300,
+        )
+
+        assertThrows<AuthException.InvalidUserInfo> {
+            fixture.authService.verifyUsernameFindOtp(
+                VerifyUsernameFindOtpCommand(
+                    studentNumber = 1102,
+                    name = "테스터",
+                    email = "user@test.com",
+                    otp = "123456",
+                ),
+            )
+        }
+        assertThrows<AuthException.InvalidUserInfo> {
+            fixture.authService.verifyUsernameFindOtp(
+                VerifyUsernameFindOtpCommand(
+                    studentNumber = 1101,
+                    name = "테스터",
+                    email = "user@test.com",
+                    otp = "000000",
+                ),
+            )
+        }
     }
 
     @Test
@@ -333,6 +445,8 @@ class AuthServiceTest {
             expiresInText = "5분",
             otpTtlSeconds = 300,
             verifiedTokenTtlSeconds = 600,
+            sendRateLimitMaxRequests = 3,
+            sendRateLimitWindowSeconds = 300,
             registerSubject = "[Xquare] 이메일 인증 코드",
             usernameRecoverySubject = "[Xquare] 아이디 찾기 코드",
             passwordResetSubject = "[Xquare] 비밀번호 재설정 코드",
@@ -362,7 +476,7 @@ class AuthServiceTest {
 
         override fun existsByUsername(username: String): Boolean = users.values.any { it.username == username }
 
-        override fun existsByEmail(email: String): Boolean = users.values.any { it.email == email }
+        override fun existsByEmail(email: String): Boolean = users.values.any { it.email.equals(email, ignoreCase = true) }
 
         override fun save(user: User): User {
             val savedUser = user.copy(id = user.id ?: nextId++)
@@ -370,7 +484,7 @@ class AuthServiceTest {
             return savedUser
         }
 
-        override fun findByEmail(email: String): User? = users.values.firstOrNull { it.email == email }
+        override fun findByEmail(email: String): User? = users.values.firstOrNull { it.email.equals(email, ignoreCase = true) }
 
         override fun findByStudentNumberAndNameAndEmail(
             studentNumber: Int,

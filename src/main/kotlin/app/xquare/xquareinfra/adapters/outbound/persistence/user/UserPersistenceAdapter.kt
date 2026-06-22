@@ -22,7 +22,7 @@ class UserPersistenceAdapter(
     UserPersistenceForNoticePort {
     override fun existsByUsername(username: String): Boolean = userRepository.existsByUsername(username)
 
-    override fun existsByEmail(email: String): Boolean = userRepository.existsByEmail(email)
+    override fun existsByEmail(email: String): Boolean = userRepository.existsByEmailIgnoreCase(email)
 
     override fun save(user: User): User {
         val entity = user.toPersistence()
@@ -32,7 +32,7 @@ class UserPersistenceAdapter(
 
     override fun findByUsername(username: String): User? = userRepository.findByUsername(username)?.toDomain()
 
-    override fun findByEmail(email: String): User? = userRepository.findByEmail(email)?.toDomain()
+    override fun findByEmail(email: String): User? = userRepository.findByEmailIgnoreCase(email)?.toDomain()
 
     override fun findById(id: Long): User? = userRepository.findById(id).getOrNull()?.toDomain()
 
@@ -45,7 +45,7 @@ class UserPersistenceAdapter(
         studentNumber: Int,
         name: String,
         email: String,
-    ): List<User> = userRepository.findByStudentNumberAndNameAndEmailIgnoreCase(studentNumber, name, email).map { it.toDomain() }
+    ): List<User> = userRepository.findByStudentNumberAndNameIgnoreCaseAndEmailIgnoreCase(studentNumber, name, email).map { it.toDomain() }
 
     override fun findByUsernameAndStudentNumberAndNameAndEmail(
         username: String,
@@ -54,6 +54,6 @@ class UserPersistenceAdapter(
         email: String,
     ): User? =
         userRepository
-            .findByUsernameAndStudentNumberAndNameAndEmailIgnoreCase(username, studentNumber, name, email)
+            .findByUsernameAndStudentNumberAndNameIgnoreCaseAndEmailIgnoreCase(username, studentNumber, name, email)
             ?.toDomain()
 }

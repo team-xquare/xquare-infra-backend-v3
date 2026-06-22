@@ -22,6 +22,7 @@ data class VerifyPasswordResetOtpRequestDto(
     val name: String,
     @field:Email
     val email: String,
+    @field:Pattern(regexp = "^[0-9]{6}$")
     @field:Size(min = 6, max = 6)
     @field:NotBlank
     val otp: String,

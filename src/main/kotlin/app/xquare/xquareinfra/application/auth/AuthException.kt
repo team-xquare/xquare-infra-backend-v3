@@ -17,6 +17,8 @@ sealed class AuthException : UseCaseException() {
 
     data object OtpMismatch : AuthException()
 
+    data object OtpRateLimitExceeded : AuthException()
+
     data object EmailNotVerified : AuthException()
 
     data object PasswordResetTokenNotFound : AuthException()
