@@ -13,6 +13,8 @@ email-otp:
   expires-in-text: "${TEST_EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
   otp-ttl-seconds: ${TEST_EMAIL_OTP_TTL_SECONDS:300}
   verified-token-ttl-seconds: ${TEST_EMAIL_OTP_VERIFIED_TOKEN_TTL_SECONDS:600}
+  send-rate-limit-max-requests: ${TEST_EMAIL_OTP_SEND_RATE_LIMIT_MAX_REQUESTS:3}
+  send-rate-limit-window-seconds: ${TEST_EMAIL_OTP_SEND_RATE_LIMIT_WINDOW_SECONDS:300}
   register-subject: "${TEST_EMAIL_OTP_REGISTER_SUBJECT:[Xquare] 이메일 인증 코드}"
   username-recovery-subject: "${TEST_EMAIL_OTP_USERNAME_RECOVERY_SUBJECT:[Xquare] 아이디 찾기 코드}"
   password-reset-subject: "${TEST_EMAIL_OTP_PASSWORD_RESET_SUBJECT:[Xquare] 비밀번호 재설정 코드}"

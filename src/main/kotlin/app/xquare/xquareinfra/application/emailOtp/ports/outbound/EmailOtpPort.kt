@@ -3,6 +3,13 @@ package app.xquare.xquareinfra.application.emailOtp.ports.outbound
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
 
 interface EmailOtpPort {
+    fun tryAcquireSendPermit(
+        purpose: EmailOtpPurpose,
+        email: String,
+        maxRequests: Int,
+        windowSeconds: Long,
+    ): Boolean
+
     fun saveOtp(
         purpose: EmailOtpPurpose,
         email: String,

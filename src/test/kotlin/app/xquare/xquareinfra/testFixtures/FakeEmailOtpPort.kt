@@ -8,6 +8,19 @@ class FakeEmailOtpPort : EmailOtpPort {
     private val otps = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
     private val otpFailures = mutableMapOf<Pair<EmailOtpPurpose, String>, Int>()
     private val verifiedTokens = mutableMapOf<Pair<EmailOtpPurpose, String>, String>()
+    private val sendRequests = mutableMapOf<Pair<EmailOtpPurpose, String>, Int>()
+
+    override fun tryAcquireSendPermit(
+        purpose: EmailOtpPurpose,
+        email: String,
+        maxRequests: Int,
+        windowSeconds: Long,
+    ): Boolean {
+        val key = purpose to normalizeEmail(email)
+        val requests = (sendRequests[key] ?: 0) + 1
+        sendRequests[key] = requests
+        return requests <= maxRequests
+    }
 
     override fun saveOtp(
         purpose: EmailOtpPurpose,
@@ -15,14 +28,15 @@ class FakeEmailOtpPort : EmailOtpPort {
         otp: String,
         ttlSeconds: Long,
     ) {
-        otps[purpose to email] = otp
-        otpFailures.remove(purpose to email)
+        val key = purpose to normalizeEmail(email)
+        otps[key] = otp
+        otpFailures.remove(key)
     }
 
     override fun getOtp(
         purpose: EmailOtpPurpose,
         email: String,
-    ): String? = otps[purpose to email]
+    ): String? = otps[purpose to normalizeEmail(email)]
 
     override fun consumeOtp(
         purpose: EmailOtpPurpose,
@@ -30,7 +44,7 @@ class FakeEmailOtpPort : EmailOtpPort {
         otp: String,
         maxFailures: Int,
     ): OtpConsumeResult {
-        val key = purpose to email
+        val key = purpose to normalizeEmail(email)
         val savedOtp = otps[key] ?: return OtpConsumeResult.NOT_FOUND
         if (savedOtp != otp) {
             val failures = (otpFailures[key] ?: 0) + 1
@@ -54,7 +68,7 @@ class FakeEmailOtpPort : EmailOtpPort {
         email: String,
         ttlSeconds: Long,
     ) {
-        verifiedTokens[purpose to token] = email
+        verifiedTokens[purpose to token] = normalizeEmail(email)
     }
 
     override fun consumeVerifiedToken(
@@ -64,7 +78,7 @@ class FakeEmailOtpPort : EmailOtpPort {
     ): String? {
         val key = purpose to token
         val email = verifiedTokens[key] ?: return null
-        if (expectedEmail != null && email != expectedEmail) {
+        if (expectedEmail != null && email != normalizeEmail(expectedEmail)) {
             return null
         }
         verifiedTokens.remove(key)
@@ -74,10 +88,12 @@ class FakeEmailOtpPort : EmailOtpPort {
     fun hasOtp(
         purpose: EmailOtpPurpose,
         email: String,
-    ): Boolean = otps.containsKey(purpose to email)
+    ): Boolean = otps.containsKey(purpose to normalizeEmail(email))
 
     fun hasVerifiedToken(
         purpose: EmailOtpPurpose,
         token: String,
     ): Boolean = verifiedTokens.containsKey(purpose to token)
+
+    private fun normalizeEmail(email: String): String = email.trim().lowercase()
 }

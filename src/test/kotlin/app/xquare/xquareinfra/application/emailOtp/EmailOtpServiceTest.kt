@@ -3,11 +3,11 @@ package app.xquare.xquareinfra.application.emailOtp
 import app.xquare.xquareinfra.application.auth.AuthException
 import app.xquare.xquareinfra.testFixtures.FakeEmailOtpPort
 import app.xquare.xquareinfra.testFixtures.FakeEmailSendPort
+import org.junit.jupiter.api.assertThrows
 import java.time.Year
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import org.junit.jupiter.api.assertThrows
 
 class EmailOtpServiceTest {
     @Test
@@ -35,6 +35,41 @@ class EmailOtpServiceTest {
         assertEquals("5분", sentEmail.variables["expiresIn"])
         assertEquals("support@test.com", sentEmail.variables["supportEmail"])
         assertEquals(Year.now().value, sentEmail.variables["year"])
+    }
+
+    @Test
+    fun `sendOtp rejects requests beyond configured rate limit`() {
+        val fixture = createFixture()
+
+        repeat(3) {
+            fixture.emailOtpService.sendOtp("User@Test.com", EmailOtpPurpose.PASSWORD_RESET)
+        }
+
+        assertThrows<AuthException.OtpRateLimitExceeded> {
+            fixture.emailOtpService.sendOtp("user@test.com", EmailOtpPurpose.PASSWORD_RESET)
+        }
+        assertEquals(3, fixture.emailSendPort.sentEmails.size)
+    }
+
+    @Test
+    fun `sendOtp does not consume rate limit when recipient is missing`() {
+        val fixture = createFixture()
+
+        repeat(3) {
+            fixture.emailOtpService.sendOtp(
+                email = "user@test.com",
+                purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+                recipientEmail = null,
+            )
+        }
+        repeat(3) {
+            fixture.emailOtpService.sendOtp(
+                email = "user@test.com",
+                purpose = EmailOtpPurpose.USERNAME_RECOVERY,
+            )
+        }
+
+        assertEquals(3, fixture.emailSendPort.sentEmails.size)
     }
 
     @Test
@@ -99,6 +134,8 @@ class EmailOtpServiceTest {
                         expiresInText = "5분",
                         otpTtlSeconds = 300,
                         verifiedTokenTtlSeconds = 600,
+                        sendRateLimitMaxRequests = 3,
+                        sendRateLimitWindowSeconds = 300,
                         registerSubject = "[Xquare] 이메일 인증 코드",
                         usernameRecoverySubject = "[Xquare] 아이디 찾기 코드",
                         passwordResetSubject = "[Xquare] 비밀번호 재설정 코드",

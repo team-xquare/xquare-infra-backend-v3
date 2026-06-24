@@ -1,13 +1,13 @@
 package app.xquare.xquareinfra.adapters.outbound.redis
 
-import app.xquare.xquareinfra.application.auth.ports.outbound.EmailOtpPort as AuthEmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.EmailOtpPurpose
-import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort as SharedEmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
+import app.xquare.xquareinfra.application.auth.ports.outbound.EmailOtpPort as AuthEmailOtpPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort as SharedEmailOtpPort
 
 @Component
 class RedisEmailOtpAdapter(
@@ -15,6 +15,8 @@ class RedisEmailOtpAdapter(
 ) : AuthEmailOtpPort,
     SharedEmailOtpPort {
     companion object {
+        private val ACQUIRE_OTP_SEND_PERMIT_SCRIPT =
+            RedisLuaScriptLoader.load("redis/scripts/acquire-otp-send-permit.lua", Long::class.java)
         private val CONSUME_OTP_SCRIPT =
             RedisLuaScriptLoader.load("redis/scripts/consume-otp.lua", Long::class.java)
         private val CONSUME_VERIFIED_TOKEN_SCRIPT =
@@ -40,8 +42,14 @@ class RedisEmailOtpAdapter(
         email: String,
     ): String = "${otpKey(purpose, email)}:failures"
 
+    private fun otpSendRateLimitKey(
+        purpose: EmailOtpPurpose,
+        email: String,
+    ): String = "otp-rate-limit:${purpose.key}:${hashEmail(email)}"
+
     private fun hashEmail(email: String): String =
-        MessageDigest.getInstance("SHA-256")
+        MessageDigest
+            .getInstance("SHA-256")
             .digest(email.trim().lowercase().toByteArray())
             .joinToString("") { "%02x".format(it) }
 
@@ -69,8 +77,7 @@ class RedisEmailOtpAdapter(
         redisTemplate.opsForValue().set(legacyVerifiedTokenKey(token), email, ttlSeconds, TimeUnit.SECONDS)
     }
 
-    override fun getEmailByVerifiedToken(token: String): String? =
-        redisTemplate.opsForValue().get(legacyVerifiedTokenKey(token))
+    override fun getEmailByVerifiedToken(token: String): String? = redisTemplate.opsForValue().get(legacyVerifiedTokenKey(token))
 
     override fun deleteVerifiedToken(token: String) {
         redisTemplate.delete(legacyVerifiedTokenKey(token))
@@ -85,6 +92,19 @@ class RedisEmailOtpAdapter(
         redisTemplate.opsForValue().set(otpKey(purpose, email), otp, ttlSeconds, TimeUnit.SECONDS)
         redisTemplate.delete(otpFailureKey(purpose, email))
     }
+
+    override fun tryAcquireSendPermit(
+        purpose: EmailOtpPurpose,
+        email: String,
+        maxRequests: Int,
+        windowSeconds: Long,
+    ): Boolean =
+        redisTemplate.execute(
+            ACQUIRE_OTP_SEND_PERMIT_SCRIPT,
+            listOf(otpSendRateLimitKey(purpose, email)),
+            windowSeconds.toString(),
+            maxRequests.toString(),
+        ) == 1L
 
     override fun getOtp(
         purpose: EmailOtpPurpose,
@@ -118,12 +138,12 @@ class RedisEmailOtpAdapter(
         email: String,
         ttlSeconds: Long,
     ) {
-        val storedEmail =
-            when (purpose) {
-                EmailOtpPurpose.REGISTER -> normalizeEmail(email)
-                else -> email
-            }
-        redisTemplate.opsForValue().set(verifiedTokenKey(purpose, token), storedEmail, ttlSeconds, TimeUnit.SECONDS)
+        redisTemplate.opsForValue().set(
+            verifiedTokenKey(purpose, token),
+            normalizeEmail(email),
+            ttlSeconds,
+            TimeUnit.SECONDS,
+        )
     }
 
     override fun consumeVerifiedToken(
@@ -134,9 +154,6 @@ class RedisEmailOtpAdapter(
         redisTemplate.execute(
             CONSUME_VERIFIED_TOKEN_SCRIPT,
             listOf(verifiedTokenKey(purpose, token)),
-            when (purpose) {
-                EmailOtpPurpose.REGISTER -> expectedEmail?.let(::normalizeEmail)
-                else -> expectedEmail
-            }.orEmpty(),
+            expectedEmail?.let(::normalizeEmail).orEmpty(),
         )
 }

@@ -5,8 +5,8 @@ import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailOtpPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort
 import app.xquare.xquareinfra.application.emailOtp.ports.outbound.OtpConsumeResult
 import org.springframework.stereotype.Service
-import java.time.Year
 import java.security.SecureRandom
+import java.time.Year
 import java.util.UUID
 
 @Service
@@ -24,26 +24,43 @@ class EmailOtpService(
     fun sendOtp(
         email: String,
         purpose: EmailOtpPurpose,
+        recipientEmail: String? = email,
     ) {
+        if (recipientEmail == null) {
+            return
+        }
+
+        val permitted =
+            emailOtpPort.tryAcquireSendPermit(
+                purpose = purpose,
+                email = email,
+                maxRequests = emailOtpProperties.sendRateLimitMaxRequests,
+                windowSeconds = emailOtpProperties.sendRateLimitWindowSeconds,
+            )
+        if (!permitted) {
+            throw AuthException.OtpRateLimitExceeded
+        }
+
         val otp = generateCode()
         emailOtpPort.saveOtp(
             purpose = purpose,
-            email = email,
+            email = recipientEmail,
             otp = otp,
             ttlSeconds = emailOtpProperties.otpTtlSeconds,
         )
 
         emailSendPort.sendWithTemplate(
-            to = email,
+            to = recipientEmail,
             subject = getSubject(purpose),
             templateName = emailOtpProperties.templateName,
-            variables = mapOf(
-                "otp" to otp,
-                "otpGuideText" to getGuideText(purpose),
-                "expiresIn" to emailOtpProperties.expiresInText,
-                "supportEmail" to emailOtpProperties.supportEmail,
-                "year" to Year.now().value,
-            ),
+            variables =
+                mapOf(
+                    "otp" to otp,
+                    "otpGuideText" to getGuideText(purpose),
+                    "expiresIn" to emailOtpProperties.expiresInText,
+                    "supportEmail" to emailOtpProperties.supportEmail,
+                    "year" to Year.now().value,
+                ),
         )
     }
 
