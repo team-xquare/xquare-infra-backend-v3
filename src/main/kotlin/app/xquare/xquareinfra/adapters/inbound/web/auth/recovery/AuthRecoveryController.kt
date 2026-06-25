@@ -40,7 +40,11 @@ class AuthRecoveryController(
     private val verifyPasswordResetOtpUseCase: VerifyPasswordResetOtpUseCase,
     private val resetPasswordUseCase: ResetPasswordUseCase,
 ) {
-    @Operation(summary = "아이디 찾기 OTP 발송")
+    @Operation(
+        tags = ["Email"],
+        summary = "아이디 찾기 이메일 OTP 발송",
+        description = "학번, 이름, 이메일이 일치하는 사용자의 이메일로 아이디 찾기용 6자리 OTP를 발송합니다.",
+    )
     @PostMapping("/username/email/send")
     fun sendUsernameFindOtp(
         @RequestBody @Valid request: SendUsernameFindOtpRequestDto,
@@ -56,7 +60,11 @@ class AuthRecoveryController(
         return APiWrappedResponseDto.success()
     }
 
-    @Operation(summary = "아이디 찾기 OTP 검증")
+    @Operation(
+        tags = ["Email"],
+        summary = "아이디 찾기 이메일 OTP 검증",
+        description = "아이디 찾기용 이메일 OTP를 검증하고 해당 사용자의 아이디를 반환합니다.",
+    )
     @PostMapping("/username/email/verify")
     fun verifyUsernameFindOtp(
         @RequestBody @Valid request: VerifyUsernameFindOtpRequestDto,
@@ -74,7 +82,11 @@ class AuthRecoveryController(
         return UsernameResponseDto(result.username).toWrappedDto()
     }
 
-    @Operation(summary = "비밀번호 재설정 아이디 확인 및 OTP 발송")
+    @Operation(
+        tags = ["Email"],
+        summary = "비밀번호 재설정 이메일 OTP 발송",
+        description = "아이디, 학번, 이름, 이메일이 일치하는 사용자의 이메일로 비밀번호 재설정용 6자리 OTP를 발송합니다.",
+    )
     @PostMapping("/password/email/send")
     fun sendPasswordResetOtp(
         @RequestBody @Valid request: SendPasswordResetOtpRequestDto,
@@ -91,7 +103,11 @@ class AuthRecoveryController(
         return APiWrappedResponseDto.success()
     }
 
-    @Operation(summary = "비밀번호 재설정 OTP 검증")
+    @Operation(
+        tags = ["Email"],
+        summary = "비밀번호 재설정 이메일 OTP 검증",
+        description = "비밀번호 재설정용 이메일 OTP를 검증하고 비밀번호 변경에 사용할 재설정 토큰을 발급합니다.",
+    )
     @PostMapping("/password/email/verify")
     fun verifyPasswordResetOtp(
         @RequestBody @Valid request: VerifyPasswordResetOtpRequestDto,

@@ -39,7 +39,11 @@ class AuthController(
     private val sendEmailOtpUseCase: SendEmailOtpUseCase,
     private val verifyEmailOtpUseCase: VerifyEmailOtpUseCase,
 ) {
-    @Operation(summary = "이메일 OTP 발송")
+    @Operation(
+        tags = ["Email"],
+        summary = "회원가입 이메일 OTP 발송",
+        description = "회원가입에 사용할 이메일 주소로 6자리 OTP를 발송합니다.",
+    )
     @PostMapping("/email/send")
     fun sendEmailOtp(
         @RequestBody @Valid request: SendOtpRequestDto,
@@ -49,7 +53,11 @@ class AuthController(
         return APiWrappedResponseDto.success()
     }
 
-    @Operation(summary = "이메일 OTP 검증")
+    @Operation(
+        tags = ["Email"],
+        summary = "회원가입 이메일 OTP 검증",
+        description = "이메일로 받은 6자리 OTP를 검증하고 회원가입에 사용할 이메일 인증 토큰을 발급합니다.",
+    )
     @PostMapping("/email/verify")
     fun verifyEmailOtp(
         @RequestBody @Valid request: VerifyOtpRequestDto,
