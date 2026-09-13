@@ -10,8 +10,8 @@ jwt:
 email-otp:
   support-email: ${TEST_EMAIL_OTP_SUPPORT_EMAIL:support@test.com}
   template-name: ${TEST_EMAIL_OTP_TEMPLATE_NAME:email/otp}
-  expires-in-text: "${TEST_EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
-  otp-ttl-seconds: ${TEST_EMAIL_OTP_TTL_SECONDS:300}
+  expires-in-text: "${TEST_EMAIL_OTP_EXPIRES_IN_TEXT:10분}"
+  otp-ttl-seconds: ${TEST_EMAIL_OTP_TTL_SECONDS:600}
   verified-token-ttl-seconds: ${TEST_EMAIL_OTP_VERIFIED_TOKEN_TTL_SECONDS:600}
   send-rate-limit-max-requests: ${TEST_EMAIL_OTP_SEND_RATE_LIMIT_MAX_REQUESTS:3}
   send-rate-limit-window-seconds: ${TEST_EMAIL_OTP_SEND_RATE_LIMIT_WINDOW_SECONDS:300}

@@ -10,8 +10,8 @@ jwt:
 email-otp:
   support-email: ${EMAIL_OTP_SUPPORT_EMAIL}
   template-name: ${EMAIL_OTP_TEMPLATE_NAME:email/otp}
-  expires-in-text: "${EMAIL_OTP_EXPIRES_IN_TEXT:5분}"
-  otp-ttl-seconds: ${EMAIL_OTP_TTL_SECONDS:300}
+  expires-in-text: "${EMAIL_OTP_EXPIRES_IN_TEXT:10분}"
+  otp-ttl-seconds: ${EMAIL_OTP_TTL_SECONDS:600}
   verified-token-ttl-seconds: ${EMAIL_OTP_VERIFIED_TOKEN_TTL_SECONDS:600}
   send-rate-limit-max-requests: ${EMAIL_OTP_SEND_RATE_LIMIT_MAX_REQUESTS:3}
   send-rate-limit-window-seconds: ${EMAIL_OTP_SEND_RATE_LIMIT_WINDOW_SECONDS:300}
@@ -64,6 +64,9 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
+      mail.smtp.timeout: ${MAIL_SMTP_TIMEOUT:5000}
+      mail.smtp.writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
 
 okhttp:
   cache-dir: ${OKHTTP_CACHE_DIR}
