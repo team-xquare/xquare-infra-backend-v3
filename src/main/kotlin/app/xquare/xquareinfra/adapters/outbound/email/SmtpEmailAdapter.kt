@@ -1,6 +1,7 @@
 package app.xquare.xquareinfra.adapters.outbound.email
 
-import app.xquare.xquareinfra.application.auth.ports.outbound.EmailSendPort
+import app.xquare.xquareinfra.application.auth.ports.outbound.EmailSendPort as AuthEmailSendPort
+import app.xquare.xquareinfra.application.emailOtp.ports.outbound.EmailSendPort as SharedEmailSendPort
 import app.xquare.xquareinfra.infrastructure.corutine.ApplicationCoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.mail.javamail.JavaMailSender
@@ -14,7 +15,8 @@ class SmtpEmailAdapter(
     private val mailSender: JavaMailSender,
     private val templateEngine: TemplateEngine,
     private val applicationCoroutineScope: ApplicationCoroutineScope,
-) : EmailSendPort {
+) : AuthEmailSendPort,
+    SharedEmailSendPort {
 
     override fun send(
         to: String,
@@ -38,7 +40,7 @@ class SmtpEmailAdapter(
         templateName: String,
         variables: Map<String, Any>,
     ) {
-        val context =Context().apply {setVariables(variables)}
+        val context = Context().apply { setVariables(variables) }
         val htmlBody = templateEngine.process(templateName, context)
         send(to, subject, htmlBody)
     }

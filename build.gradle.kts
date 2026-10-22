@@ -43,6 +43,7 @@ dependencies {
     implementation(Dependencies.Kotlin.COROUTINES)
     implementation(Dependencies.Kotlin.COROUTINES_REACTOR)
     testImplementation(Dependencies.Kotlin.TEST_JUNIT5)
+    testRuntimeOnly(Dependencies.Database.H2)
 
     runtimeOnly(Dependencies.Database.MYSQL_CONNECTOR)
 
@@ -52,8 +53,6 @@ dependencies {
     implementation(Dependencies.JWT.API)
     runtimeOnly(Dependencies.JWT.IMPL)
     runtimeOnly(Dependencies.JWT.JACKSON)
-
-    testRuntimeOnly(Dependencies.Test.JUNIT_PLATFORM_LAUNCHER)
 
     implementation(Dependencies.SpringBoot.MAIL)
 
