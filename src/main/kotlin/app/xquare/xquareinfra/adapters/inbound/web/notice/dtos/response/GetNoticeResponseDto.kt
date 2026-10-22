@@ -8,6 +8,7 @@ data class GetNoticeResponseDto(
     val title: String,
     val content: String,
     val author: String,
+    val fileUrl: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) : SuccessResponseDto

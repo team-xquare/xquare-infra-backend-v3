@@ -8,6 +8,7 @@ data class Notice(
     val title: String,
     val content: String,
     val author: User,
+    val fileUrl: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 )
