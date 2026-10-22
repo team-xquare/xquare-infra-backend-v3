@@ -20,11 +20,11 @@ import app.xquare.xquareinfra.application.notice.ports.outbound.FileUploadPort
 import app.xquare.xquareinfra.domain.notice.Notice
 import app.xquare.xquareinfra.domain.user.User
 import app.xquare.xquareinfra.domain.user.UserRole
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import org.springframework.mock.web.MockMultipartFile
-import org.springframework.web.multipart.MultipartFile
 
 class NoticeControllerTest {
     @Test

@@ -16,24 +16,33 @@ class S3FileUploadAdapter(
     @Value("\${s3.bucket}") private val bucket: String,
 ) : FileUploadPort {
     override fun upload(file: MultipartFile): String {
-        val safeName = (file.originalFilename ?: "file")
-            .substringAfterLast('/')
-            .substringAfterLast('\\')
-            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val safeName =
+            (file.originalFilename ?: "file")
+                .substringAfterLast('/')
+                .substringAfterLast('\\')
+                .replace(Regex("[^A-Za-z0-9._-]"), "_")
         val key = "notice/${UUID.randomUUID()}-$safeName"
 
-        val request = PutObjectRequest.builder()
-            .bucket(bucket)
-            .key(key)
-            .contentType(file.contentType)
-            .build()
+        val request =
+            PutObjectRequest
+                .builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(file.contentType)
+                .build()
 
         file.inputStream.use { input ->
             s3Client.putObject(request, RequestBody.fromInputStream(input, file.size))
         }
 
-        return s3Client.utilities()
-            .getUrl(GetUrlRequest.builder().bucket(bucket).key(key).build())
-            .toExternalForm()
+        return s3Client
+            .utilities()
+            .getUrl(
+                GetUrlRequest
+                    .builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build(),
+            ).toExternalForm()
     }
 }
