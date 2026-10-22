@@ -8,16 +8,20 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import java.net.URI
 
-@Configuration // 추가
+@Configuration
 class S3Config(
     @Value("\${s3.access-key}") private val accessKey: String,
     @Value("\${s3.secret-key}") private val secretKey: String,
     @Value("\${s3.region}") private val region: String,
+    @Value("\${s3.endpoint}") private val endpoint: String,
+    @Value("\${s3.path-style-access}") private val pathStyleAccess: Boolean,
 ) {
     @Bean
     fun s3Client(): S3Client =
-        S3Client.builder()
+        S3Client
+            .builder()
             .region(Region.of(region))
             .credentialsProvider(
                 if (accessKey.isNotBlank() && secretKey.isNotBlank()) {
@@ -27,6 +31,10 @@ class S3Config(
                 } else {
                     DefaultCredentialsProvider.create()
                 },
-            )
+            ).apply {
+                if (endpoint.isNotBlank()) {
+                    endpointOverride(URI.create(endpoint))
+                }
+            }.forcePathStyle(pathStyleAccess)
             .build()
 }

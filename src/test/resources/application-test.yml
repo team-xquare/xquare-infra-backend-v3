@@ -83,3 +83,5 @@ s3:
   secret-key: ${TEST_S3_SECRET_KEY:test-secret-key}
   region: ${TEST_S3_REGION:ap-northeast-2}
   bucket: ${TEST_S3_BUCKET:test-bucket}
+  endpoint: ${TEST_S3_ENDPOINT:}
+  path-style-access: ${TEST_S3_PATH_STYLE_ACCESS:false}
