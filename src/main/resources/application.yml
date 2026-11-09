@@ -92,6 +92,12 @@ vault:
   token: ${VAULT_TOKEN}
   mount: ${VAULT_MOUNT}
 
+proxmox:
+  url: ${PROXMOX_URL:}
+  token-id: ${PROXMOX_TOKEN_ID}
+  token-secret: ${PROXMOX_TOKEN_SECRET}
+  ca-cert: ${PROXMOX_CA_CERT:}
+
 swagger:
   user: ${SWAGGER_USER}
   password: ${SWAGGER_PASSWORD}

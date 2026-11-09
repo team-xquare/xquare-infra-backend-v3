@@ -74,6 +74,12 @@ vault:
   token: ${TEST_VAULT_TOKEN:test-vault-token}
   mount: ${TEST_VAULT_MOUNT:secret}
 
+proxmox:
+  url: ${TEST_PROXMOX_URL:https://localhost:8006}
+  token-id: ${TEST_PROXMOX_TOKEN_ID:test@pve!test}
+  token-secret: ${TEST_PROXMOX_TOKEN_SECRET:test-proxmox-secret}
+  ca-cert: ${TEST_PROXMOX_CA_CERT:}
+
 swagger:
   user: ${TEST_SWAGGER_USER:test-user}
   password: ${TEST_SWAGGER_PASSWORD:test-password}
