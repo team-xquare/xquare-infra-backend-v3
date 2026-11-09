@@ -1,0 +1,84 @@
+name: xquare-infra
+
+services:
+  backend:
+    image: ghcr.io/team-xquare/xquare-infra-backend-v3:dd1827943321552a59d15d29a6ad245241ac7d23
+    env_file: backend.env
+    environment:
+      SPRING_CONFIG_IMPORT: "optional:configtree:/run/secrets/"
+    secrets:
+      - MYSQL_PASS
+      - JWT_SECRET
+      - VAULT_TOKEN
+      - GITOPS_TOKEN
+      - ARGO_WORKFLOWS_TOKEN
+      - GITHUB_APP_CLIENT_SECRET
+      - SWAGGER_PASSWORD
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+
+  mysql:
+    image: mysql:8.0.43
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    environment:
+      MYSQL_DATABASE: xquare_infra_mysql
+      MYSQL_USER: xquare
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_ROOT_PASSWORD
+      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_PASS
+    secrets:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_PASS
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:8.2.2-alpine
+    command: ["redis-server", "--save", "60 1", "--dir", "/data"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mysql-data:
+  redis-data:
+
+secrets:
+  MYSQL_ROOT_PASSWORD:
+    file: /etc/xquare/secrets/MYSQL_ROOT_PASSWORD
+  MYSQL_PASS:
+    file: /etc/xquare/secrets/MYSQL_PASS
+  JWT_SECRET:
+    file: /etc/xquare/secrets/JWT_SECRET
+  VAULT_TOKEN:
+    file: /etc/xquare/secrets/VAULT_TOKEN
+  GITOPS_TOKEN:
+    file: /etc/xquare/secrets/GITOPS_TOKEN
+  ARGO_WORKFLOWS_TOKEN:
+    file: /etc/xquare/secrets/ARGO_WORKFLOWS_TOKEN
+  GITHUB_APP_CLIENT_SECRET:
+    file: /etc/xquare/secrets/GITHUB_APP_CLIENT_SECRET
+  SWAGGER_PASSWORD:
+    file: /etc/xquare/secrets/SWAGGER_PASSWORD
