@@ -1,9 +1,11 @@
-name: xquare-infra
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
 
 services:
   backend:
-    image: ghcr.io/team-xquare/xquare-infra-backend-v3:dd1827943321552a59d15d29a6ad245241ac7d23
-    env_file: backend.env
     environment:
       SPRING_CONFIG_IMPORT: "optional:configtree:/run/secrets/"
     secrets:
@@ -27,6 +29,9 @@ services:
       timeout: 3s
       retries: 3
       start_period: 60s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 768m
 
   mysql:
     image: mysql:8.0.43
@@ -34,7 +39,6 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     environment:
-      MYSQL_DATABASE: xquare_infra_mysql
       MYSQL_USER: xquare
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/MYSQL_ROOT_PASSWORD
       MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_PASS
@@ -49,6 +53,9 @@ services:
       timeout: 3s
       retries: 5
       start_period: 30s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 768m
 
   redis:
     image: redis:8.2.2-alpine
@@ -60,6 +67,9 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 256m
 
 volumes:
   mysql-data:

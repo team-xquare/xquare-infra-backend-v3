@@ -1,19 +1,21 @@
-name: Deploy prod
+name: Deploy
 
 on:
   push:
     branches:
       - main
+      - develop
   workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: deploy-prod
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
   IMAGE: ghcr.io/team-xquare/xquare-infra-backend-v3
+  DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'stag' }}
 
 jobs:
   build:
@@ -44,16 +46,17 @@ jobs:
 
   release:
     needs: build
+    if: github.ref_name == 'main' || github.ref_name == 'develop'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Publish deploy/prod branch
+      - name: Publish deploy branch
         run: |
-          sed -i -E "s#(image: ${IMAGE}):[0-9a-f]+#\1:${GITHUB_SHA}#" deploy/compose.yaml
+          sed -i -E "s#(image: ${IMAGE}):[0-9a-f]+#\1:${GITHUB_SHA}#" "deploy/compose.${DEPLOY_ENV}.yaml"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit --allow-empty -am "deploy: backend ${GITHUB_SHA::7}"
-          git push --force origin HEAD:refs/heads/deploy/prod
+          git commit --allow-empty -am "deploy(${DEPLOY_ENV}): backend ${GITHUB_SHA::7}"
+          git push --force origin "HEAD:refs/heads/deploy/${DEPLOY_ENV}"

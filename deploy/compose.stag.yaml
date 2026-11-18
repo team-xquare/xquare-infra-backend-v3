@@ -1,0 +1,19 @@
+name: xquare-infra-stag
+
+services:
+  backend:
+    image: ghcr.io/team-xquare/xquare-infra-backend-v3:b034f06b1a329c49214293537226eb82e57df356
+    env_file: stag.env
+    secrets:
+      - MAIL_USERNAME
+      - MAIL_PASSWORD
+
+  mysql:
+    environment:
+      MYSQL_DATABASE: xquare_infra_mysql_stag
+
+secrets:
+  MAIL_USERNAME:
+    file: /etc/xquare/secrets/MAIL_USERNAME
+  MAIL_PASSWORD:
+    file: /etc/xquare/secrets/MAIL_PASSWORD
