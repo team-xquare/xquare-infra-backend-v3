@@ -1,0 +1,10 @@
+name: xquare-infra
+
+services:
+  backend:
+    image: ghcr.io/team-xquare/xquare-infra-backend-v3:dd1827943321552a59d15d29a6ad245241ac7d23
+    env_file: prod.env
+
+  mysql:
+    environment:
+      MYSQL_DATABASE: xquare_infra_mysql
