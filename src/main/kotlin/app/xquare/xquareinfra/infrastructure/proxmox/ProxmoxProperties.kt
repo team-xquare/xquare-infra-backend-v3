@@ -8,4 +8,5 @@ data class ProxmoxProperties(
     val tokenId: String,
     val tokenSecret: String,
     val caCert: String = "",
+    val clusterId: String = "",
 )

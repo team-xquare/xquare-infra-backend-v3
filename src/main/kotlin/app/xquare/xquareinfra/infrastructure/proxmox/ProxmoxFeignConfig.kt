@@ -15,14 +15,19 @@ class ProxmoxFeignConfig {
     fun proxmoxFeignBuilder(
         okHttpClient: OkHttpClient,
         proxmoxProperties: ProxmoxProperties,
-    ): Feign.Builder {
+    ): Feign.Builder = Feign.builder().client(feign.okhttp.OkHttpClient(buildHttpClient(okHttpClient, proxmoxProperties)))
+
+    internal fun buildHttpClient(
+        okHttpClient: OkHttpClient,
+        proxmoxProperties: ProxmoxProperties,
+    ): OkHttpClient {
         val httpClientBuilder = okHttpClient.newBuilder()
         if (proxmoxProperties.caCert.isNotBlank()) {
             val trustManager = trustManagerOf(proxmoxProperties.caCert)
             val sslContext = SSLContext.getInstance("TLS").apply { init(null, arrayOf(trustManager), null) }
             httpClientBuilder.sslSocketFactory(sslContext.socketFactory, trustManager)
         }
-        return Feign.builder().client(feign.okhttp.OkHttpClient(httpClientBuilder.build()))
+        return httpClientBuilder.build()
     }
 
     private fun trustManagerOf(caCertPem: String): X509TrustManager {
