@@ -58,6 +58,26 @@ class GuestPlacementTest {
     }
 
     @Test
+    fun `incompatible pool kinds block only that cluster and store`() {
+        val shared = node.diskPool
+        val local = shared.copy(localNode = "n1")
+        val otherNode = local.copy(localNode = "n2")
+
+        fun held(
+            pool: PoolKey,
+            bytes: Long,
+        ) = Reservations(emptyMap(), mapOf(pool to bytes))
+        val localCandidate = node.copy(diskPool = local)
+        assertNull(choose(listOf(localCandidate), held(shared, 1)))
+        assertNull(choose(listOf(node), held(otherNode, 1)))
+        assertNull(choose(listOf(localCandidate, node.copy(alias = "b", physicalNode = NodeKey("cluster", "n2")))))
+        assertEquals("a", choose(listOf(localCandidate), held(otherNode, Long.MAX_VALUE)))
+        assertEquals("a", choose(listOf(localCandidate), held(shared.copy(cluster = "elsewhere"), Long.MAX_VALUE)))
+        assertEquals("a", choose(listOf(localCandidate), held(shared.copy(storage = "other"), Long.MAX_VALUE)))
+        assertEquals("a", choose(listOf(localCandidate), held(shared, 0)))
+    }
+
+    @Test
     fun `ties use a stable server alias regardless of enumeration order`() {
         val b = node.copy(alias = "b", physicalNode = NodeKey("cluster", "n2"))
         assertEquals("a", choose(listOf(b, node)))

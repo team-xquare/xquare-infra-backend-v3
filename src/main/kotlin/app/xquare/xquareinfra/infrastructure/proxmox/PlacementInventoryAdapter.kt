@@ -15,6 +15,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.stereotype.Component
 import java.io.IOException
+import java.security.GeneralSecurityException
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
@@ -30,6 +31,7 @@ class PlacementInventoryAdapter(
             .newBuilder()
             .apply {
                 interceptors().clear() // Do not log catalog identifiers or cache an inventory snapshot.
+                networkInterceptors().clear()
                 cache(null)
                 followRedirects(false)
                 followSslRedirects(false)
@@ -49,13 +51,36 @@ class PlacementInventoryAdapter(
                     nodes.singleOrNull { it.text("node") == name }?.text("status") == "online"
                 }
             val stores = online.values.associateWith { api.rows("nodes/$it/storage") }
+            // Check raw observations before eligibility filters remove a node (e.g. missing LXC archive).
+            val kinds =
+                stores.values
+                    .flatten()
+                    .filter { it.text("storage") == profile.targetStore }
+                    .map { it.flag("shared") }
+            if (kinds.distinct().singleOrNull() == null) return null
             val template = profile.template
             val minFinalDiskBytes =
                 if (template is Template.Qemu) {
                     val source = stores[template.sourceNode] ?: return null
-                    if (template.sourceStores.any { source.store(it, "images") == null }) return null
                     val actual = api.data("nodes/${template.sourceNode}/qemu/${template.vmid}/config", "current" to "1")
-                    actual.sourceDiskBytes(template) ?: return null
+                    val disk = actual.sourceDisk(template) ?: return null
+                    if (source.store(disk.store, "images")?.text("type") !in exactRawBlockStores) return null
+                    val images =
+                        api.rows(
+                            "nodes/${template.sourceNode}/storage/${disk.store}/content",
+                            "content" to "images",
+                            "vmid" to template.vmid.toString(),
+                        )
+                    val image = images.singleOrNull { it.text("volid") == disk.volid } ?: return null
+                    if (image.text("format") != "raw" ||
+                        image.has("approximate-size") ||
+                        image.number("size") != disk.bytes ||
+                        (image.has("vmid") && image.number("vmid") != template.vmid.toLong()) ||
+                        (image.has("vtype") && image.text("vtype") != "vm-vol")
+                    ) {
+                        return null
+                    }
+                    disk.bytes
                 } else {
                     0L
                 }
@@ -104,6 +129,8 @@ class PlacementInventoryAdapter(
             Inventory(start, candidates)
         } catch (_: IOException) {
             null
+        } catch (_: GeneralSecurityException) {
+            null // Invalid CA or TLS setup: do not expose provider diagnostics or fall back.
         } catch (_: IllegalArgumentException) {
             null
         }
@@ -114,23 +141,23 @@ class PlacementInventoryAdapter(
     ) {
         fun rows(
             path: String,
-            query: Pair<String, String>? = null,
-        ): List<JsonNode> = data(path, query).also { require(it.isArray) }.toList()
+            vararg query: Pair<String, String>,
+        ): List<JsonNode> = data(path, *query).also { require(it.isArray) }.toList()
 
         fun data(
             path: String,
-            query: Pair<String, String>? = null,
+            vararg query: Pair<String, String>,
         ): JsonNode {
             require(Instant.now() < started.plus(PlacementPolicy.maxAge))
             val url = config.url.toHttpUrl()
-            require(url.isHttps || url.host == "127.0.0.1" || url.host == "::1")
+            require(url.isHttps)
             require(config.tokenId.isNotBlank() && config.tokenSecret.isNotBlank())
             val endpoint =
                 url
                     .newBuilder()
                     .addPathSegments(
                         "api2/json/$path",
-                    ).apply { query?.let { addQueryParameter(it.first, it.second) } }
+                    ).apply { query.forEach { (key, value) -> addQueryParameter(key, value) } }
                     .build()
             val request =
                 Request
@@ -148,7 +175,14 @@ class PlacementInventoryAdapter(
         }
     }
 
+    private data class SourceDisk(
+        val store: String,
+        val volid: String,
+        val bytes: Long,
+    )
+
     private companion object {
+        val exactRawBlockStores = setOf("rbd", "lvmthin")
         const val MAX_BYTES = 1024 * 1024
         val clusterIdPattern = Regex("[A-Za-z0-9][A-Za-z0-9_.-]{0,63}")
         val uuidPattern = Regex("[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}")
@@ -193,7 +227,7 @@ class PlacementInventoryAdapter(
                 else -> false
             }
 
-        fun JsonNode.sourceDiskBytes(template: Template.Qemu): Long? {
+        fun JsonNode.sourceDisk(template: Template.Qemu): SourceDisk? {
             // Only the explicitly supported single-volume full-clone shape is eligible, even locally.
             if (!isObject || flag("template") != true || fieldNames().asSequence().any { !supportedField(it) }) return null
             val disk = simpleDisk.matchEntire(text("scsi0") ?: return null) ?: return null
@@ -201,7 +235,8 @@ class PlacementInventoryAdapter(
             if (setOf(store) != template.sourceStores || vmid != template.vmid.toString()) return null
             val count = quantity.toLongOrNull() ?: return null
             val multiplier = 1L shl (10 * ("KMGT".indexOf(unit.single()) + 1))
-            return if (count <= Long.MAX_VALUE / multiplier) count * multiplier else null
+            if (count > Long.MAX_VALUE / multiplier) return null
+            return SourceDisk(store, disk.value.substringBefore(',').removePrefix("file="), count * multiplier)
         }
     }
 }

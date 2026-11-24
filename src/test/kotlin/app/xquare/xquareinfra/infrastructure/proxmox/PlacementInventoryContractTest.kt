@@ -13,6 +13,8 @@ import app.xquare.xquareinfra.application.placement.Reservations
 import app.xquare.xquareinfra.application.placement.Template
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sun.net.httpserver.HttpServer
+import com.sun.net.httpserver.HttpsConfigurator
+import com.sun.net.httpserver.HttpsServer
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.Test
 import java.net.InetSocketAddress
@@ -38,7 +40,7 @@ class PlacementInventoryContractTest {
             f.templateFlag = 0
             assertEquals(unavailable, f.preview(qemu))
             assertTrue("/api2/json/nodes/n1/qemu/900/config?current=1" in f.requests)
-            assertFalse(f.requests.any { "offline" in it || "/content" in it })
+            assertFalse(f.requests.any { "offline" in it || "content=vztmpl" in it })
         }
     }
 
@@ -202,11 +204,107 @@ class PlacementInventoryContractTest {
         }
     }
 
+    @Test
+    fun `source config must match one exact logical block volume on its owner`() {
+        Fixture().use { f ->
+            val row = f.image
+            val identity = "base:base-900-disk-0"
+            val exact = "\"size\":$SOURCE_BYTES"
+            for (rows in listOf(
+                "[]",
+                "[$row,$row]",
+                "[${row.replace(identity, "base:base-900-disk-1")}]",
+                "[${row.replace(exact, "\"used\":$SOURCE_BYTES")}]",
+                "[${row.replace("size", "approximate-size")}]",
+                "[${row.replace(exact, "\"size\":${SOURCE_BYTES - 1}")}]",
+                "[${row.replace("raw", "qcow2")}]",
+                "[${row.replace("\"vmid\":900", "\"vmid\":901")}]",
+            )) {
+                f.images = rows
+                assertEquals(unavailable, f.preview(qemu), rows)
+            }
+            f.images = "[$row]"
+            f.sourceType = "unknown"
+            assertEquals(unavailable, f.preview(qemu))
+            f.sourceType = "rbd"
+            f.requests.clear()
+            assertEquals(PlacementDecision.Selected("east"), f.preview(qemu))
+            assertEquals(listOf("/api2/json/nodes/n1/storage/base/content?content=images&vmid=900"), f.requests.filter { "/content" in it })
+            assertFalse(f.badTransport)
+            f.sourceType = "lvmthin"
+            f.shared = 0
+            f.templateDisk = "file=base:base-900-disk-0"
+            assertEquals(PlacementDecision.Selected("west"), f.preview(qemu))
+        }
+    }
+
+    @Test
+    fun `ineligible node cannot hide conflicting target pool observations`() {
+        Fixture().use { f ->
+            // n2 has no approved LXC archive and would be removed before scoring.
+            f.secondDestShared = 1
+            assertEquals(unavailable, f.preview(lxc))
+            f.secondDestShared = 0
+            assertEquals(PlacementDecision.Selected("west"), f.preview(lxc))
+        }
+    }
+
+    @Test
+    fun `loopback plaintext is rejected without any request`() {
+        Fixture(plaintext = true).use { f ->
+            assertEquals(unavailable, f.preview(qemu))
+            assertTrue(f.requests.isEmpty())
+        }
+    }
+
+    @Test
+    fun `unreadable CA fails closed before any request`() {
+        Fixture(ca = "-----BEGIN CERTIFICATE-----\ninvalid\n-----END CERTIFICATE-----").use { f ->
+            assertEquals(unavailable, f.preview(qemu))
+            assertTrue(f.requests.isEmpty())
+        }
+    }
+
+    @Test
+    fun `an untrusted loopback identity does not receive the authenticated request`() {
+        Fixture(ca = "").use { f ->
+            assertEquals(unavailable, f.preview(lxc))
+            assertTrue(f.requests.isEmpty())
+        }
+    }
+
+    @Test
+    fun `placement does not invoke shared client interceptors`() {
+        var seen = 0
+        val client =
+            OkHttpClient
+                .Builder()
+                .addInterceptor {
+                    seen++
+                    it.proceed(it.request())
+                }.addNetworkInterceptor {
+                    seen++
+                    it.proceed(it.request())
+                }.build()
+        Fixture(client = client).use { f ->
+            assertEquals(PlacementDecision.Selected("west"), f.preview(lxc))
+            assertEquals(0, seen)
+        }
+    }
+
     private companion object {
         const val SOURCE_BYTES = 16L * 1024 * 1024 * 1024
     }
 
-    private class Fixture : AutoCloseable {
+    private class Fixture(
+        plaintext: Boolean = false,
+        ca: String = PlacementTestTls.certificate,
+        client: OkHttpClient = OkHttpClient(),
+    ) : AutoCloseable {
+        val image = """{"volid":"base:base-900-disk-0","size":$SOURCE_BYTES,"format":"raw","vmid":900}"""
+        var images = "[$image]"
+        var sourceType = "rbd"
+        var secondDestShared = 0
         var shared = 1
         var memoryCapacity = 1024L
         var freeBytes = SOURCE_BYTES
@@ -224,13 +322,24 @@ class PlacementInventoryContractTest {
 
         @Volatile var badTransport = false
         val requests = CopyOnWriteArrayList<String>()
-        val server: HttpServer = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        private val address = InetSocketAddress("127.0.0.1", 0)
+        val server: HttpServer =
+            if (plaintext) {
+                HttpServer.create(address, 0)
+            } else {
+                HttpsServer.create(address, 0).apply { httpsConfigurator = HttpsConfigurator(PlacementTestTls.context) }
+            }
         val api: LocalGuestPlacementApi
 
         init {
             server.createContext("/") { exchange ->
                 val uri = exchange.requestURI.toString()
                 requests += uri
+                if (plaintext) {
+                    exchange.sendResponseHeaders(403, -1)
+                    exchange.close()
+                    return@createContext
+                }
                 if (exchange.requestMethod != "GET" ||
                     exchange.requestHeaders.getFirst("Authorization") != "PVEAPIToken=fixture=sample"
                 ) {
@@ -240,7 +349,9 @@ class PlacementInventoryContractTest {
                 val data =
                     when (route) {
                         "nodes" -> """[${metric("n1", "0.25")},${metric("n2", "0.0")},{"node":"offline","status":"offline"}]"""
-                        "nodes/n1/storage", "nodes/n2/storage" -> storageRows()
+                        "nodes/n1/storage" -> storageRows(0)
+                        "nodes/n2/storage" -> storageRows(secondDestShared)
+                        "nodes/n1/storage/base/content?content=images&vmid=900" -> images
                         "nodes/n1/qemu/900/config?current=1" ->
                             """{"template":$templateFlag,"scsi0":"$templateDisk$sizeOption"$extraConfig}"""
                         "nodes/n1/storage/base/content?content=vztmpl" -> """[{"volid":"base:vztmpl/example.tar.zst"}]"""
@@ -253,13 +364,14 @@ class PlacementInventoryContractTest {
                 exchange.responseBody.use { it.write(bytes) }
             }
             server.start()
-            val props = ProxmoxProperties("http://127.0.0.1:${server.address.port}", "fixture", "sample", clusterId = "fixture-cluster")
-            api = LocalGuestPlacementApi(GuestPlacement(PlacementInventoryAdapter(OkHttpClient(), props, ObjectMapper())))
+            val scheme = if (plaintext) "http" else "https"
+            val props = ProxmoxProperties("$scheme://127.0.0.1:${server.address.port}", "fixture", "sample", ca, "fixture-cluster")
+            api = LocalGuestPlacementApi(GuestPlacement(PlacementInventoryAdapter(client, props, ObjectMapper())))
         }
 
-        private fun storageRows() =
-            """[{"storage":"base","active":1,"enabled":1,"content":"images,vztmpl","shared":$shared},""" +
-                """{"storage":"dest","active":$active,"enabled":1,"avail":$freeBytes,"content":"$targetContent","shared":0}]"""
+        private fun storageRows(destShared: Int) =
+            """[{"storage":"base","type":"$sourceType","active":1,"enabled":1,"content":"images,vztmpl","shared":$shared},""" +
+                """{"storage":"dest","active":$active,"enabled":1,"avail":$freeBytes,"content":"$targetContent","shared":$destShared}]"""
 
         private fun metric(
             node: String,

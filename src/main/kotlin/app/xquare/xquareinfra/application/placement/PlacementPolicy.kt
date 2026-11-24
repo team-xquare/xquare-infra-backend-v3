@@ -67,8 +67,12 @@ object PlacementPolicy {
         ) {
             return null
         }
+        val poolKeys = nodes.map { it.diskPool } + reservations.diskByPool.filterValues { it > 0 }.keys
+        val shared = poolKeys.filter { it.localNode == null }.toSet()
+        val ambiguous = poolKeys.filter { it.localNode != null }.map { it.copy(localNode = null) }.intersect(shared)
         return nodes
             .mapNotNull { node ->
+                if (node.diskPool.copy(localNode = null) in ambiguous) return@mapNotNull null
                 val held = reservations.byNode[node.physicalNode] ?: Compute(0, 0)
                 val diskHeld = reservations.diskByPool[node.diskPool] ?: 0
                 score(node, demand, held, diskHeld)?.let { it to node.alias }
